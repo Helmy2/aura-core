@@ -1,0 +1,18 @@
+package com.example.aura.data.mapper
+
+import com.example.aura.data.remote.model.PhotoDto
+import com.example.aura.domain.model.Wallpaper
+
+fun PhotoDto.toDomain(): Wallpaper {
+    return Wallpaper(
+        id = id,
+        imageUrl = src.original,
+        smallImageUrl = src.medium,
+        photographer = photographer,
+        photographerUrl = photographerUrl,
+        averageColor = avgColor ?: "#CCCCCC",
+        height = height,
+        width = width,
+        isFavorite = false
+    )
+}
