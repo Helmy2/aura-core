@@ -1,6 +1,7 @@
 package com.example.aura.data.remote
 
 import com.example.aura.data.remote.model.PexelsResponseDto
+import com.example.aura.data.remote.model.PhotoDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -21,5 +22,9 @@ class PexelsApi(val client: HttpClient) {
             parameter("page", page)
             parameter("per_page", perPage)
         }.body()
+    }
+
+    suspend fun getWallpaperById(id: Long): PhotoDto {
+        return client.get("photos/$id").body()
     }
 }

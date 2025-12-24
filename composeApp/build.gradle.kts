@@ -42,10 +42,12 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
+            implementation(compose.materialIconsExtended)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(libs.bundles.composeLifecycle)
             implementation(libs.bundles.coil)
+            implementation(libs.bundles.nav3)
             implementation(libs.koin.compose)
             implementation(libs.adaptive)
         }

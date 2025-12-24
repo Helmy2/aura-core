@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -25,7 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
-import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
+import com.example.aura.core.extensions.shimmerEffect
 import com.example.aura.domain.model.Wallpaper
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -99,11 +101,18 @@ fun WallpaperItem(
             .aspectRatio(0.7f)
             .clickable { onClick(wallpaper.id) }
     ) {
-        AsyncImage(
+        SubcomposeAsyncImage(
             model = wallpaper.smallImageUrl,
-            contentDescription = "Photo by ${wallpaper.photographer}",
+            contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            loading = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .shimmerEffect()
+                )
+            }
         )
     }
 }
