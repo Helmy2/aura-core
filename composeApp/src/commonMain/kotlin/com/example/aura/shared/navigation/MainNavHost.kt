@@ -1,8 +1,5 @@
 package com.example.aura.shared.navigation
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
@@ -34,29 +31,25 @@ fun MainNavHost(modifier: Modifier = Modifier) {
     val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(directive = directive)
 
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        NavDisplay(
-            sceneStrategy = listDetailStrategy,
-            backStack = navController.backStack,
-            entryDecorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator(),
-            ),
-            modifier = modifier.padding(it),
-            entryProvider = entryProvider {
-                entry<HomeRoute>(
-                    metadata = ListDetailSceneStrategy.listPane()
-                ) {
-                    HomeScreen()
-                }
-                entry<DetailRoute>(
-                    metadata = ListDetailSceneStrategy.detailPane()
-                ) { route ->
-                    DetailScreen(route.id)
-                }
-            },
-        )
-    }
+    NavDisplay(
+        modifier = modifier,
+        sceneStrategy = listDetailStrategy,
+        backStack = navController.backStack,
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator(),
+        ),
+        entryProvider = entryProvider {
+            entry<HomeRoute>(
+                metadata = ListDetailSceneStrategy.listPane()
+            ) {
+                HomeScreen()
+            }
+            entry<DetailRoute>(
+                metadata = ListDetailSceneStrategy.detailPane()
+            ) { route ->
+                DetailScreen(route.id)
+            }
+        },
+    )
 }

@@ -3,7 +3,6 @@ package com.example.aura.feature.detail
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,9 +41,7 @@ fun DetailScreen(
         }
     }
 
-    Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-    ) { padding ->
+    Scaffold { padding ->
         Box(
             modifier = Modifier.fillMaxSize()
                 .background(color = state.wallpaper?.averageColor?.toColor() ?: Color.Transparent)

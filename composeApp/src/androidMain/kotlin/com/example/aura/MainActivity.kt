@@ -2,21 +2,24 @@ package com.example.aura
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.aura.di.appModule
-import com.example.aura.di.initKoin
-import org.koin.android.ext.koin.androidContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(
+                Color.Transparent.toArgb(),
+            ),
+            navigationBarStyle = SystemBarStyle.dark(
+                Color.Transparent.toArgb(),
+            )
+        )
         super.onCreate(savedInstanceState)
 
-        initKoin {
-            androidContext(applicationContext)
-            modules(appModule)
-        }
         setContent {
             App()
         }

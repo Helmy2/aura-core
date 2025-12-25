@@ -1,12 +1,15 @@
 package com.example.aura.feature.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -27,6 +30,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -67,7 +72,7 @@ fun HomeScreen() {
     }
 
     Scaffold { padding ->
-        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
             if (state.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (state.error != null) {
@@ -77,6 +82,19 @@ fun HomeScreen() {
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(MaterialTheme.dimens.topBarScrimHeight)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Black.copy(alpha = 0.6f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
                 WallpaperGrid(
                     listState = listState,
                     wallpapers = state.wallpapers,
@@ -84,7 +102,8 @@ fun HomeScreen() {
                     onWallpaperClick = { id ->
                         viewModel.sendIntent(HomeIntent.OnWallpaperClicked(id))
                     },
-                    isPaginationLoading = state.isPaginationLoading
+                    isPaginationLoading = state.isPaginationLoading,
+                    contentPadding = padding + PaddingValues(MaterialTheme.dimens.md)
                 )
             }
         }
@@ -99,6 +118,7 @@ fun WallpaperGrid(
     onWallpaperClick: (Long) -> Unit,
     isPaginationLoading: Boolean,
     listState: LazyGridState,
+    contentPadding: PaddingValues = PaddingValues(MaterialTheme.dimens.md)
 ) {
     val minSize =
         if (windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
@@ -112,7 +132,7 @@ fun WallpaperGrid(
     LazyVerticalGrid(
         state = listState,
         columns = GridCells.Adaptive(minSize = minSize),
-        contentPadding = PaddingValues(MaterialTheme.dimens.md),
+        contentPadding = contentPadding,
     ) {
         items(wallpapers, key = { it.id }) { wallpaper ->
             WallpaperItem(wallpaper, onWallpaperClick, modifier = Modifier.animateItem())
