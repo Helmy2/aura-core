@@ -8,7 +8,10 @@ data class HomeState(
     val currentPage: Int = 1,
     val isEndReached: Boolean = false,
     val wallpapers: List<WallpaperUi> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val searchQuery: String = "",
+    val isSearchMode: Boolean = false,
+    val searchWallpapers: List<WallpaperUi> = emptyList()
 )
 
 sealed interface HomeIntent {
@@ -23,4 +26,8 @@ sealed interface HomeIntent {
     ) : HomeIntent
 
     data object SetEndReached : HomeIntent
+
+    data class OnSearchQueryChanged(val query: String) : HomeIntent
+    data object OnSearchTriggered : HomeIntent
+    data object OnClearSearch : HomeIntent
 }

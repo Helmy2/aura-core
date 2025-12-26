@@ -26,7 +26,11 @@ class HomeViewModel(
         return when (intent) {
             is HomeIntent.LoadCuratedWallpapers -> {
                 loadWallpapers()
-                currentState.copy(isLoading = true, error = null)
+                currentState.copy(
+                    isSearchMode = false,
+                    searchQuery = "",
+                    isLoading = true
+                )
             }
 
             is HomeIntent.OnError -> {
@@ -40,7 +44,11 @@ class HomeViewModel(
 
             is HomeIntent.LoadNextPage -> {
                 if (!currentState.isPaginationLoading && !currentState.isEndReached) {
-                    loadWallpapers(page = currentState.currentPage + 1)
+                    if (currentState.isSearchMode) {
+                        performSearch(currentState.searchQuery, page = currentState.currentPage + 1)
+                    } else {
+                        loadWallpapers(page = currentState.currentPage + 1)
+                    }
                     currentState.copy(
                         isPaginationLoading = true
                     )
@@ -50,18 +58,54 @@ class HomeViewModel(
             }
 
             is HomeIntent.AppendWallpapers -> {
-                val combinedList = currentState.wallpapers + intent.newWallpapers
-                currentState.copy(
-                    isLoading = false,
-                    isPaginationLoading = false,
-                    wallpapers = combinedList,
-                    currentPage = intent.page
-                )
+                if (currentState.isSearchMode) {
+                    currentState.copy(
+                        searchWallpapers = currentState.searchWallpapers + intent.newWallpapers,
+                        isLoading = false,
+                        isPaginationLoading = false,
+                        currentPage = intent.page
+                    )
+                } else {
+                    currentState.copy(
+                        wallpapers = currentState.wallpapers + intent.newWallpapers,
+                        isLoading = false,
+                        isPaginationLoading = false,
+                        currentPage = intent.page
+                    )
+                }
             }
 
             is HomeIntent.SetEndReached -> {
                 currentState.copy(
                     isEndReached = true
+                )
+            }
+
+            is HomeIntent.OnSearchQueryChanged -> {
+                currentState.copy(searchQuery = intent.query)
+            }
+
+            is HomeIntent.OnSearchTriggered -> {
+                if (currentState.searchQuery.isBlank()) {
+                    currentState
+                } else {
+                    performSearch(query = currentState.searchQuery, page = 1)
+
+                    currentState.copy(
+                        isSearchMode = true,
+                        isLoading = true,
+                        isEndReached = false,
+                        currentPage = 1,
+                        searchWallpapers = emptyList()
+                    )
+                }
+            }
+
+            is HomeIntent.OnClearSearch -> {
+                currentState.copy(
+                    isSearchMode = false,
+                    searchQuery = "",
+                    isEndReached = false,
                 )
             }
         }.only()
@@ -76,6 +120,23 @@ class HomeViewModel(
                     sendIntent(HomeIntent.SetEndReached)
                 } else {
                     val uiWallpapers = newWallpapers.map { it.toUi() }
+                    sendIntent(HomeIntent.AppendWallpapers(uiWallpapers, page))
+                }
+            } catch (e: Exception) {
+                sendIntent(HomeIntent.OnError(e.message.orEmpty()))
+            }
+        }
+    }
+
+    private fun performSearch(query: String, page: Int) {
+        viewModelScope.launch {
+            try {
+                val results = repository.searchWallpapers(query, page)
+
+                if (results.isEmpty()) {
+                    sendIntent(HomeIntent.SetEndReached)
+                } else {
+                    val uiWallpapers = results.map { it.toUi() }
                     sendIntent(HomeIntent.AppendWallpapers(uiWallpapers, page))
                 }
             } catch (e: Exception) {

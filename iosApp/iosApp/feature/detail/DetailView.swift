@@ -9,7 +9,7 @@ import Shared
 import SwiftUI
 
 struct DetailView: View {
-    let wallpaper: Wallpaper
+    let wallpaper: WallpaperUi
     @State private var viewModel = DetailViewModel()
 
     var body: some View {
@@ -41,19 +41,14 @@ struct DetailView: View {
                     .frame(height: 160)
 
                     // Text
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Photo by")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.8))
+                    Text(wallpaper.photographerName)
+                        .font(.title2)
+                        .bold()
+                        .foregroundColor(.white)
 
-                        Text(wallpaper.photographer)
-                            .font(.title2)
-                            .bold()
-                            .foregroundColor(.white)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .padding(.bottom, 20)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .padding(.bottom, 20)
                 }
             }
 

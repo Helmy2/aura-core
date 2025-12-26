@@ -14,8 +14,8 @@ class WallpaperRepositoryImpl(
         return response.photos.map { it.toDomain() }
     }
 
-    override suspend fun searchWallpapers(query: String): List<Wallpaper> {
-        val response = api.searchWallpapers(query = query)
+    override suspend fun searchWallpapers(query: String, page: Int): List<Wallpaper> {
+        val response = api.searchWallpapers(query = query, page = page)
         return response.photos.map { it.toDomain() }
     }
 

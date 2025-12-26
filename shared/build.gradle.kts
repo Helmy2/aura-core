@@ -26,15 +26,6 @@ kotlin {
     
     jvm()
     
-    js {
-        browser()
-    }
-    
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-    }
-    
     sourceSets {
         commonMain.dependencies {
             implementation(libs.koin.core)
@@ -52,12 +43,6 @@ kotlin {
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
-        }
-        wasmJsMain.dependencies {
-            implementation(libs.ktor.client.js)
-        }
-        jsMain.dependencies {
-            implementation(libs.ktor.client.js)
         }
     }
 }

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.plus
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -18,7 +17,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -37,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import coil3.compose.SubcomposeAsyncImage
+import com.example.aura.shared.designsystem.component.AuraSearchBar
 import com.example.aura.shared.core.extensions.shimmerEffect
 import com.example.aura.shared.designsystem.theme.dimens
 import com.example.aura.shared.model.WallpaperUi
@@ -73,9 +72,7 @@ fun HomeScreen() {
 
     Scaffold { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
-            if (state.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else if (state.error != null) {
+            if (state.error != null) {
                 Text(
                     text = "Error: ${state.error}",
                     color = MaterialTheme.colorScheme.error,
@@ -97,13 +94,32 @@ fun HomeScreen() {
                 )
                 WallpaperGrid(
                     listState = listState,
-                    wallpapers = state.wallpapers,
+                    wallpapers = if (state.isSearchMode) state.searchWallpapers else state.wallpapers,
                     windowSizeClass = windowSizeClass,
                     onWallpaperClick = { id ->
                         viewModel.sendIntent(HomeIntent.OnWallpaperClicked(id))
                     },
                     isPaginationLoading = state.isPaginationLoading,
-                    contentPadding = padding + PaddingValues(MaterialTheme.dimens.md)
+                    isLoading = state.isLoading,
+                    contentPadding = padding + PaddingValues(MaterialTheme.dimens.md),
+                    searchAppBar = {
+                        AuraSearchBar(
+                            query = state.searchQuery,
+                            onQueryChange = {
+                                viewModel.sendIntent(
+                                    HomeIntent.OnSearchQueryChanged(
+                                        it
+                                    )
+                                )
+                            },
+                            onSearch = { viewModel.sendIntent(HomeIntent.OnSearchTriggered) },
+                            onClearSearch = {
+                                viewModel.sendIntent(HomeIntent.OnClearSearch)
+                            },
+                            isSearchActive = state.isSearchMode,
+                            modifier = Modifier.padding(bottom = MaterialTheme.dimens.md)
+                        )
+                    }
                 )
             }
         }
@@ -117,8 +133,10 @@ fun WallpaperGrid(
     windowSizeClass: WindowSizeClass,
     onWallpaperClick: (Long) -> Unit,
     isPaginationLoading: Boolean,
+    isLoading: Boolean,
     listState: LazyGridState,
-    contentPadding: PaddingValues = PaddingValues(MaterialTheme.dimens.md)
+    contentPadding: PaddingValues = PaddingValues(MaterialTheme.dimens.md),
+    searchAppBar: @Composable () -> Unit = {}
 ) {
     val minSize =
         if (windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
@@ -134,18 +152,24 @@ fun WallpaperGrid(
         columns = GridCells.Adaptive(minSize = minSize),
         contentPadding = contentPadding,
     ) {
-        items(wallpapers, key = { it.id }) { wallpaper ->
-            WallpaperItem(wallpaper, onWallpaperClick, modifier = Modifier.animateItem())
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            searchAppBar()
         }
-        if (isPaginationLoading) {
-            item(span = { GridItemSpan(maxLineSpan) }) { // Span full width
-                Box(
+        if (!isLoading)
+            items(wallpapers, key = {it.id}) { wallpaper ->
+                WallpaperItem(wallpaper, onWallpaperClick, modifier = Modifier.animateItem())
+            }
+        if (isPaginationLoading || isLoading) {
+            items(10) {
+                Card(
                     modifier = Modifier
+                        .padding(MaterialTheme.dimens.xs)
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
+                        .aspectRatio(0.7f)
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    Box(
+                        modifier = Modifier.fillMaxSize().shimmerEffect(),
+                    )
                 }
             }
         }

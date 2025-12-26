@@ -7,7 +7,7 @@ interface WallpaperRepository {
     suspend fun getCuratedWallpapers(page: Int = 1): List<Wallpaper>
 
     @Throws(Exception::class)
-    suspend fun searchWallpapers(query: String): List<Wallpaper>
+    suspend fun searchWallpapers(query: String, page: Int = 1): List<Wallpaper>
 
     @Throws(Exception::class)
     suspend fun getWallpaperById(id: Long): Wallpaper
