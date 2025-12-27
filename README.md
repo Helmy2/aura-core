@@ -156,6 +156,14 @@ Aura intelligently switches between two modes:
 - **Original Quality**: Downloads the highest resolution available from Pexels
 - **Permission Management**: Handles storage/photo library permissions gracefully
 
+### Favorites System
+
+- **Local Storage**: SQLDelight database stores favorites with full wallpaper details
+- **Real-time Sync**: Favorites automatically update across Home, Search, and Favorites screens
+- **Offline Access**: Access your favorite wallpapers anytime, even without internet
+- **Instant Toggle**: Add/remove favorites with immediate UI feedback
+- **State Persistence**: Favorite status persists across app restarts
+
 ### Native Platform Experiences
 
 **Android**:
@@ -179,6 +187,8 @@ Aura intelligently switches between two modes:
 - [x] Infinite scroll pagination
 - [x] Immersive detail screen
 - [x] Download functionality (Android & iOS)
+- [x] Favorites system with local storage (SQLDelight)
+- [x] Real-time favorite sync across screens
 - [x] Edge-to-edge display
 - [x] State preservation between modes
 - [x] MVI architecture implementation
@@ -186,7 +196,6 @@ Aura intelligently switches between two modes:
 
 ### 🚧 In Progress / Planned
 
-- [ ] Favorites & Collections system
 - [ ] Offline mode with local caching
 - [ ] Settings screen (quality, theme, etc.)
 - [ ] Video wallpaper support

@@ -1,20 +1,18 @@
 package com.example.aura.feature.favorites
 
 import androidx.lifecycle.viewModelScope
-import com.example.aura.domain.repository.FavoritesRepository
+import com.example.aura.domain.repository.WallpaperRepository
 import com.example.aura.shared.core.mvi.MviViewModel
 import com.example.aura.shared.model.toUi
 import com.example.aura.shared.navigation.AppNavigator
 import com.example.aura.shared.navigation.Destination
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class FavoritesViewModel(
-    private val favoritesRepository: FavoritesRepository,
-    private val navigator: AppNavigator
+    private val wallpaperRepository: WallpaperRepository, private val navigator: AppNavigator
 ) : MviViewModel<FavoritesState, FavoritesIntent, FavoritesEffect>(
     initialState = FavoritesState()
 ) {
@@ -24,8 +22,7 @@ class FavoritesViewModel(
     }
 
     override fun reduce(
-        currentState: FavoritesState,
-        intent: FavoritesIntent
+        currentState: FavoritesState, intent: FavoritesIntent
     ): Pair<FavoritesState, FavoritesEffect?> {
         return when (intent) {
             is FavoritesIntent.LoadFavorites -> {
@@ -34,23 +31,20 @@ class FavoritesViewModel(
 
             is FavoritesIntent.FavoritesLoaded -> {
                 currentState.copy(
-                    favorites = intent.favorites,
-                    isLoading = false,
-                    error = null
+                    favorites = intent.favorites, isLoading = false, error = null
                 ).only()
             }
 
             is FavoritesIntent.FavoritesLoadError -> {
                 currentState.copy(
-                    isLoading = false,
-                    error = intent.message
+                    isLoading = false, error = intent.message
                 ).with(FavoritesEffect.ShowError(intent.message))
             }
 
             is FavoritesIntent.RemoveFavorite -> {
                 viewModelScope.launch {
                     try {
-                        favoritesRepository.removeFavorite(intent.wallpaper.id)
+                        wallpaperRepository.removeFavorite(intent.wallpaper.id)
                     } catch (e: Exception) {
                         sendIntent(
                             FavoritesIntent.RemoveFavoriteError(
@@ -70,7 +64,7 @@ class FavoritesViewModel(
                 viewModelScope.launch {
                     try {
                         currentState.favorites.forEach { wallpaper ->
-                            favoritesRepository.removeFavorite(wallpaper.id)
+                            wallpaperRepository.removeFavorite(wallpaper.id)
                         }
                     } catch (e: Exception) {
                         sendIntent(
@@ -97,26 +91,17 @@ class FavoritesViewModel(
     }
 
     private fun observeFavorites() {
-        favoritesRepository.getAllFavorites()
-            .onEach { favorites ->
-                val favoriteIds = favoritesRepository.getAllFavorites()
-                    .first()
-                    .map { it.id }
-                    .toSet()
-
-                sendIntent(FavoritesIntent.FavoritesLoaded(favorites.map {
-                    it.toUi(
-                        isFavorite = favoriteIds.contains(it.id)
-                    )
-                }))
-            }
-            .catch { throwable ->
+        wallpaperRepository.observeFavorites().onEach { favorites ->
+            sendIntent(
+                FavoritesIntent.FavoritesLoaded(
+                    favorites.map { it.toUi(isFavorite = true) })
+            )
+        }.catch { throwable ->
                 sendIntent(
                     FavoritesIntent.FavoritesLoadError(
                         throwable.message ?: "Unknown error"
                     )
                 )
-            }
-            .launchIn(viewModelScope)
+        }.launchIn(viewModelScope)
     }
 }

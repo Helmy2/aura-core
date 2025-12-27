@@ -1,7 +1,6 @@
 package com.example.aura.feature.detail
 
 import androidx.lifecycle.viewModelScope
-import com.example.aura.domain.repository.FavoritesRepository
 import com.example.aura.domain.repository.WallpaperRepository
 import com.example.aura.feature.detail.DetailEffect.ShowError
 import com.example.aura.feature.detail.DetailIntent.DownloadError
@@ -24,7 +23,6 @@ import kotlinx.coroutines.launch
 
 class DetailViewModel(
     private val wallpaperRepository: WallpaperRepository,
-    private val favoritesRepository: FavoritesRepository,
     private val imageDownloader: ImageDownloader,
     private val navigator: AppNavigator
 ) : MviViewModel<DetailState, DetailIntent, DetailEffect>(
@@ -66,7 +64,7 @@ class DetailViewModel(
                 viewModelScope.launch {
                     try {
                         val wallpaper = wallpaperRepository.getWallpaperById(intent.wallpaper.id)
-                        favoritesRepository.toggleFavorite(wallpaper)
+                        wallpaperRepository.toggleFavorite(wallpaper)
                     } catch (e: Exception) {
                         sendIntent(DownloadError(e.message ?: "Failed to update favorite"))
                     }
@@ -102,7 +100,8 @@ class DetailViewModel(
         viewModelScope.launch {
             try {
                 val wallpaper = wallpaperRepository.getWallpaperById(wallpaperId)
-                val isFavorite = favoritesRepository.isFavorite(wallpaperId)
+                val isFavorite =
+                    wallpaperRepository.isFavorite(wallpaperId) // ✅ Use unified repository
                 sendIntent(WallpaperLoaded(wallpaper.toUi(isFavorite)))
             } catch (e: Exception) {
                 sendIntent(LoadError(e.message ?: "Failed to load wallpaper"))
@@ -111,7 +110,7 @@ class DetailViewModel(
     }
 
     private fun observeFavoriteStatus(wallpaperId: Long) {
-        favoritesRepository.getAllFavorites()
+        wallpaperRepository.observeFavorites()
             .map { favorites -> favorites.any { it.id == wallpaperId } }
             .onEach { isFavorite ->
                 sendIntent(FavoriteStatusUpdated(isFavorite))
@@ -121,11 +120,9 @@ class DetailViewModel(
 
     private fun downloadWallpaper() {
         val wallpaper = currentState.wallpaper ?: return
-
         viewModelScope.launch {
             val fileName = "aura_${wallpaper.id}"
             val success = imageDownloader.downloadImage(wallpaper.imageUrl, fileName)
-
             sendIntent(DownloadFinished(success))
         }
     }

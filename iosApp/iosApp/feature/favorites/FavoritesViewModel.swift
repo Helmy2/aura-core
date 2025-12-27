@@ -1,10 +1,3 @@
-//
-//  ObservableFavoritesViewModel.swift
-//  iosApp
-//
-//  Created by platinum on 27/12/2025.
-//
-
 import Foundation
 import Shared
 import Observation
@@ -19,10 +12,10 @@ class FavoritesViewModel {
     var toastMessage: String = ""
 
     // Dependencies
-    private let favoritesRepository: FavoritesRepository
-
+    private let repository: WallpaperRepository
+    
     init() {
-        self.favoritesRepository = KoinHelper().favoritesRepository
+        self.repository = KoinHelper().wallpaperRepository
         observeFavorites()
     }
 
@@ -30,8 +23,7 @@ class FavoritesViewModel {
     func removeFavorite(wallpaper: WallpaperUi) {
         Task {
             do {
-                let kmWallpaper = wallpaper.toDomain()
-                try await favoritesRepository.removeFavorite(wallpaperId: kmWallpaper.id)
+                try await repository.removeFavorite(wallpaperId: wallpaper.id)
                 self.toastMessage = "Removed from favorites"
                 self.showToast = true
             } catch {
@@ -46,8 +38,7 @@ class FavoritesViewModel {
         Task {
             do {
                 for favorite in favorites {
-                    let kmWallpaper = favorite.toDomain()
-                    try await favoritesRepository.removeFavorite(wallpaperId: kmWallpaper.id)
+                    try await repository.removeFavorite(wallpaperId: favorite.id)
                 }
                 self.toastMessage = "All favorites cleared"
                 self.showToast = true
@@ -61,7 +52,7 @@ class FavoritesViewModel {
 
     // MARK: - Private Logic
     private func observeFavorites() {
-        favoritesRepository.getAllFavorites().collect(
+        repository.observeFavorites().collect(
             collector: Collector<[Wallpaper]> { [weak self] wallpapers in
                 guard let self = self else {
                     return

@@ -42,7 +42,8 @@ extension WallpaperUi {
             averageColor: self.averageColor,
             height: Int32(self.height),
             width: Int32(self.width),
-            )
+            isFavorite: isFavorite
+        )
     }
 }
 

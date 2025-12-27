@@ -18,22 +18,12 @@ class HomeViewModel {
     // Pagination State
     private var currentPage: Int = 1
     private var isEndReached: Bool = false
-
-    // Favorite State
-    private var favoriteIds: Set<Int64> = [] // ✅ Cache favorite IDs
     
     // Dependencies
     private let repository: WallpaperRepository
-    private let favoritesRepository: FavoritesRepository
     
     init() {
         self.repository = KoinHelper().wallpaperRepository
-        self.favoritesRepository = KoinHelper().favoritesRepository
-
-        // Start observing favorites first
-        observeFavorites()
-
-        // Then load wallpapers
         loadCuratedWallpapers(reset: true)
     }
     
@@ -84,7 +74,9 @@ class HomeViewModel {
         Task {
             do {
                 let kmWallpaper = wallpaper.toDomain()
-                try await favoritesRepository.toggleFavorite(wallpaper: kmWallpaper)
+                try await repository.toggleFavorite(wallpaper: kmWallpaper)
+
+                updateWallpaperFavoriteStatus(wallpaperId: wallpaper.id)
             } catch {
                 self.errorMessage = error.localizedDescription
             }
@@ -112,20 +104,17 @@ class HomeViewModel {
                     self.isLoading = false
                     self.isPaginationLoading = false
                 } else {
-                    // ✅ Use cached favorite IDs when creating UI models
                     let uiResults = result.map {
-                        $0.toUi(isFavorite: favoriteIds.contains($0.id))
+                        $0.toUi(isFavorite: $0.isFavorite)
                     }
                     
                     if isSearch {
                         if page == 1 {
                             self.searchWallpapers = uiResults
                         } else {
-                            let existingIds = Set(
-                                self.searchWallpapers.map {
-                                    $0.id
-                                }
-                            )
+                            let existingIds = Set(self.searchWallpapers.map {
+                                $0.id
+                            })
                             let newUnique = uiResults.filter {
                                 !existingIds.contains($0.id)
                             }
@@ -154,44 +143,13 @@ class HomeViewModel {
         }
     }
 
-    private func observeFavorites() {
-        favoritesRepository.getAllFavorites().collect(
-            collector: Collector<[Wallpaper]> { [weak self] favorites in
-                guard let self = self else {
-                    return
-                }
+    private func updateWallpaperFavoriteStatus(wallpaperId: Int64) {
+        if let index = wallpapers.firstIndex(where: { $0.id == wallpaperId }) {
+            wallpapers[index].isFavorite.toggle()
+        }
 
-                Task { @MainActor in
-                    // ✅ Update cached favorite IDs
-                    self.favoriteIds = Set(favorites.map {
-                        $0.id
-                    })
-
-                    // Update existing wallpapers
-                    self.wallpapers = self.wallpapers.map { wallpaper in
-                        var updated = wallpaper
-                        updated.isFavorite = self.favoriteIds.contains(wallpaper.id)
-                        return updated
-                    }
-
-                    // Update search wallpapers
-                    self.searchWallpapers = self.searchWallpapers.map { wallpaper in
-                        var updated = wallpaper
-                        updated.isFavorite = self.favoriteIds.contains(wallpaper.id)
-                        return updated
-                    }
-                }
-            },
-            completionHandler: { [weak self] error in
-                guard let self = self else {
-                    return
-                }
-                Task { @MainActor in
-                    if let error = error {
-                        self.errorMessage = error.localizedDescription
-                    }
-                }
-            }
-        )
+        if let index = searchWallpapers.firstIndex(where: { $0.id == wallpaperId }) {
+            searchWallpapers[index].isFavorite.toggle()
+        }
     }
 }

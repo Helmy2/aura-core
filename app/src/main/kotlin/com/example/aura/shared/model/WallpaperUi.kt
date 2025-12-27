@@ -13,7 +13,7 @@ data class WallpaperUi(
     val contentDescription: String,
     val aspectRatio: Float,
     val averageColor: String,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean
 )
 
 fun Wallpaper.toUi(isFavorite: Boolean): WallpaperUi {

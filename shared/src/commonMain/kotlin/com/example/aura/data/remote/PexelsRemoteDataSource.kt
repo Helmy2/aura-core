@@ -7,9 +7,9 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 
-class PexelsApi(val client: HttpClient) {
+class PexelsRemoteDataSource(val client: HttpClient) {
 
-    suspend fun getWallpapers(page: Int = 1, perPage: Int = 30): PexelsResponseDto {
+    suspend fun getCuratedWallpapers(page: Int = 1, perPage: Int = 30): PexelsResponseDto {
         return client.get("curated") {
             parameter("page", page)
             parameter("per_page", perPage)

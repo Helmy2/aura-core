@@ -1,15 +1,9 @@
-//
-//  DetailViewModel.swift
-//  iosApp
-//
-//  Created by platinum on 25/12/2025.
-//
-
 import Foundation
 import SwiftUI
 import Observation
 import Shared
 
+@MainActor
 @Observable
 class DetailViewModel {
     var isDownloading: Bool = false
@@ -18,18 +12,19 @@ class DetailViewModel {
     var isFavorite: Bool = false
     
     private let downloader = ImageDownloader()
-    private let favoritesRepository: FavoritesRepository
-
+    private let repository: WallpaperRepository
+    
     init() {
-        self.favoritesRepository = KoinHelper().favoritesRepository
+        self.repository = KoinHelper().wallpaperRepository
     }
 
     func loadFavoriteStatus(wallpaperId: Int64) {
         Task {
             do {
-                self.isFavorite = try await favoritesRepository.isFavorite(wallpaperId: wallpaperId).boolValue
+                self.isFavorite = try await repository.isFavorite(wallpaperId: wallpaperId).boolValue
             } catch {
                 // Silent fail
+                print("Failed to load favorite status: \(error)")
             }
         }
     }
@@ -38,7 +33,7 @@ class DetailViewModel {
         Task {
             do {
                 let kmWallpaper = wallpaper.toDomain()
-                try await favoritesRepository.toggleFavorite(wallpaper: kmWallpaper)
+                try await repository.toggleFavorite(wallpaper: kmWallpaper)
                 self.isFavorite.toggle()
                 self.toastMessage = isFavorite ? "Added to favorites" : "Removed from favorites"
                 self.showToast = true

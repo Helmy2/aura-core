@@ -12,4 +12,5 @@ data class Wallpaper(
     val averageColor: String,
     val height: Int,
     val width: Int,
+    val isFavorite: Boolean,
 )
