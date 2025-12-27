@@ -11,14 +11,15 @@ data class HomeState(
     val error: String? = null,
     val searchQuery: String = "",
     val isSearchMode: Boolean = false,
-    val searchWallpapers: List<WallpaperUi> = emptyList()
+    val searchWallpapers: List<WallpaperUi> = emptyList(),
+    val favoriteIds: Set<Long> = emptySet()
 )
 
 sealed interface HomeIntent {
     data object LoadCuratedWallpapers : HomeIntent
     data object LoadNextPage : HomeIntent
     data class OnError(val message: String) : HomeIntent
-    data class OnWallpaperClicked(val wallpaperId: Long) : HomeIntent
+    data class OnWallpaperClicked(val wallpaper: WallpaperUi) : HomeIntent
 
     data class AppendWallpapers(
         val newWallpapers: List<WallpaperUi>,
@@ -30,4 +31,7 @@ sealed interface HomeIntent {
     data class OnSearchQueryChanged(val query: String) : HomeIntent
     data object OnSearchTriggered : HomeIntent
     data object OnClearSearch : HomeIntent
+
+    data class ToggleFavorite(val wallpaper: WallpaperUi) : HomeIntent
+    data class FavoriteStatusUpdated(val favoriteIds: Set<Long>) : HomeIntent
 }

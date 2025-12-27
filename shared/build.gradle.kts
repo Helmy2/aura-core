@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -28,12 +29,16 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.bundles.ktor)
             implementation(libs.ktor.client.logging)
+            implementation(libs.sqldelight.coroutines)
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.android.driver)
+            implementation(libs.koin.android)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.native.driver)
         }
     }
 }
@@ -47,5 +52,13 @@ android {
     }
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
+    }
+}
+
+sqldelight {
+    databases {
+        create("AuraDatabase") {
+            packageName.set("com.example.aura.database")
+        }
     }
 }

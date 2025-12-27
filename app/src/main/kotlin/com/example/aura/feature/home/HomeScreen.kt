@@ -1,25 +1,11 @@
 package com.example.aura.feature.home
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.Card
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -27,17 +13,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.window.core.layout.WindowSizeClass
-import coil3.compose.SubcomposeAsyncImage
-import com.example.aura.shared.designsystem.component.AuraSearchBar
-import com.example.aura.shared.core.extensions.shimmerEffect
-import com.example.aura.shared.designsystem.theme.dimens
-import com.example.aura.shared.model.WallpaperUi
+import com.example.aura.shared.component.AuraScaffold
+import com.example.aura.shared.component.AuraSearchBar
+import com.example.aura.shared.component.WallpaperGallery
+import com.example.aura.shared.theme.dimens
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -45,10 +25,7 @@ fun HomeScreen() {
     val viewModel = koinViewModel<HomeViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    val adaptiveInfo = currentWindowAdaptiveInfo()
-    val windowSizeClass = adaptiveInfo.windowSizeClass
-
-    val listState = rememberLazyGridState()
+    val listState = rememberLazyStaggeredGridState()
 
     val shouldLoadMore by remember {
         derivedStateOf {
@@ -69,7 +46,7 @@ fun HomeScreen() {
         }
     }
 
-    Scaffold { padding ->
+    AuraScaffold { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
             if (state.error != null) {
                 Text(
@@ -78,26 +55,15 @@ fun HomeScreen() {
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(MaterialTheme.dimens.topBarScrimHeight)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Black.copy(alpha = 0.6f),
-                                    Color.Transparent
-                                )
-                            )
-                        )
-                )
-                WallpaperGrid(
-                    modifier = Modifier.padding(padding),
+                WallpaperGallery(
+                    contentPadding = padding,
                     listState = listState,
                     wallpapers = if (state.isSearchMode) state.searchWallpapers else state.wallpapers,
-                    windowSizeClass = windowSizeClass,
-                    onWallpaperClick = { id ->
-                        viewModel.sendIntent(HomeIntent.OnWallpaperClicked(id))
+                    onWallpaperClick = {
+                        viewModel.sendIntent(HomeIntent.OnWallpaperClicked(it))
+                    },
+                    onWallpaperFavoriteClick = {
+                        viewModel.sendIntent(HomeIntent.ToggleFavorite(it))
                     },
                     isPaginationLoading = state.isPaginationLoading,
                     isLoading = state.isLoading,
@@ -122,86 +88,5 @@ fun HomeScreen() {
                 )
             }
         }
-    }
-}
-
-@Suppress("ParamsComparedByRef")
-@Composable
-fun WallpaperGrid(
-    modifier: Modifier = Modifier,
-    wallpapers: List<WallpaperUi>,
-    windowSizeClass: WindowSizeClass,
-    onWallpaperClick: (Long) -> Unit,
-    isPaginationLoading: Boolean,
-    isLoading: Boolean,
-    listState: LazyGridState,
-    contentPadding: PaddingValues = PaddingValues(MaterialTheme.dimens.md),
-    searchAppBar: @Composable () -> Unit = {}
-) {
-    val minSize =
-        if (windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
-            250.dp
-        } else if (windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
-            200.dp
-        } else {
-            150.dp
-        }
-
-    LazyVerticalGrid(
-        state = listState,
-        columns = GridCells.Adaptive(minSize = minSize),
-        contentPadding = contentPadding,
-        modifier = modifier
-    ) {
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            searchAppBar()
-        }
-        if (!isLoading)
-            items(wallpapers, key = {it.id}) { wallpaper ->
-                WallpaperItem(wallpaper, onWallpaperClick, modifier = Modifier.animateItem())
-            }
-        if (isPaginationLoading || isLoading) {
-            items(10) {
-                Card(
-                    modifier = Modifier
-                        .padding(MaterialTheme.dimens.xs)
-                        .fillMaxWidth()
-                        .aspectRatio(0.7f)
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize().shimmerEffect(),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun WallpaperItem(
-    wallpaper: WallpaperUi,
-    onClick: (Long) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier
-            .padding(MaterialTheme.dimens.xs)
-            .fillMaxWidth()
-            .aspectRatio(0.7f)
-            .clickable { onClick(wallpaper.id) }
-    ) {
-        SubcomposeAsyncImage(
-            model = wallpaper.smallImageUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
-            loading = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .shimmerEffect()
-                )
-            }
-        )
     }
 }

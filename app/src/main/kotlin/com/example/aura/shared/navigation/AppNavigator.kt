@@ -10,7 +10,7 @@ import kotlinx.serialization.json.Json
  * Manages the app's back stack and top-level navigation state using an observable list.
  */
 class AppNavigator(
-    startDestination: Route = Route.Home,
+    startDestination: Destination = Destination.Home,
 ) : SavedStateRegistry.SavedStateProvider {
     /**
      * Observable history of visited destinations. The last item is the active screen.
@@ -41,7 +41,7 @@ class AppNavigator(
             val jsonList = savedBundle.getStringArrayList(backStackStateKey)
             if (!jsonList.isNullOrEmpty()) {
                 backStack.clear()
-                val restoredStack = jsonList.map { Json.decodeFromString<Route>(it) }
+                val restoredStack = jsonList.map { Json.decodeFromString<Destination>(it) }
                 backStack.addAll(restoredStack)
             }
         }
@@ -69,7 +69,7 @@ class AppNavigator(
      *                  to prevent duplicate stacking (e.g., double-tap protection).
      */
     fun navigate(
-        destination: Route,
+        destination: Destination,
         singleTop: Boolean = true,
     ) {
         val current = backStack.lastOrNull()
@@ -86,7 +86,7 @@ class AppNavigator(
      *
      * **Use Case:** Logging out, completing a checkout flow, or resetting the app state.
      */
-    fun navigateAsStart(destination: Route) {
+    fun navigateAsStart(destination: Destination) {
         backStack.clear()
         backStack.add(destination)
     }
@@ -104,7 +104,7 @@ class AppNavigator(
      * - If re-selecting the current tab: Pops to root.
      * - If switching tabs: Resets stack to the new root.
      */
-    fun navigateToTopLevel(destination: Route) {
+    fun navigateToTopLevel(destination: Destination) {
         if (backStack.firstOrNull() == destination) {
             // Re-selected current tab: Pop everything above the root
             if (backStack.size > 1) {
@@ -113,7 +113,7 @@ class AppNavigator(
         } else {
             // Switch tab: Reset stack completely
             backStack.clear()
-            backStack.add(Route.Home)
+            backStack.add(Destination.Home)
             backStack.add(destination)
         }
     }

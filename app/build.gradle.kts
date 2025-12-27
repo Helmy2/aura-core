@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.koin.core)
 
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

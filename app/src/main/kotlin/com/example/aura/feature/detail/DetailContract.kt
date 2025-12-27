@@ -1,25 +1,28 @@
 package com.example.aura.feature.detail
 
-import com.example.aura.domain.model.Wallpaper
 import com.example.aura.shared.model.WallpaperUi
 
 data class DetailState(
+    val wallpaper: WallpaperUi? = null,
     val isLoading: Boolean = true,
-    val isDownloading: Boolean = false,
     val error: String? = null,
-    val wallpaper: WallpaperUi? = null
+    val isDownloading: Boolean = false
 )
 
 sealed interface DetailIntent {
-    data class OnError(val message: String) : DetailIntent
-    data class OnScreenOpened(val wallpaperId: Long) : DetailIntent
-    data class OnWallpaperLoaded(val wallpaper: Wallpaper) : DetailIntent
+    data class LoadWallpaper(val wallpaperId: Long) : DetailIntent
+    data class WallpaperLoaded(val wallpaper: WallpaperUi) : DetailIntent
+    data class LoadError(val message: String) : DetailIntent
+
+    data class ToggleFavorite(val wallpaper: WallpaperUi) : DetailIntent
+    data class FavoriteStatusUpdated(val isFavorite: Boolean) : DetailIntent
+
+    data object DownloadWallpaper : DetailIntent
+    data class DownloadError(val message: String) : DetailIntent
     data object OnBackClicked : DetailIntent
-    data object DownloadImage : DetailIntent
-    data object DownloadStarted : DetailIntent
     data class DownloadFinished(val success: Boolean) : DetailIntent
 }
 
 sealed interface DetailEffect {
-    data class ShowToast(val message: String) : DetailEffect
+    data class ShowError(val message: String) : DetailEffect
 }

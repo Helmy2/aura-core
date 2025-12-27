@@ -1,4 +1,4 @@
-package com.example.aura.shared.designsystem.theme
+package com.example.aura.shared.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable

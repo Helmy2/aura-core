@@ -13,6 +13,5 @@ fun PhotoDto.toDomain(): Wallpaper {
         averageColor = avgColor ?: "#CCCCCC",
         height = height,
         width = width,
-        isFavorite = false
     )
 }
