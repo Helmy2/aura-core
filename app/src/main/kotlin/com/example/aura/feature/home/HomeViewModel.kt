@@ -5,7 +5,7 @@ import com.example.aura.domain.repository.WallpaperRepository
 import com.example.aura.shared.core.mvi.MviViewModel
 import com.example.aura.shared.model.toUi
 import com.example.aura.shared.navigation.AppNavigator
-import com.example.aura.shared.navigation.DetailRoute
+import com.example.aura.shared.navigation.Route
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
@@ -38,7 +38,7 @@ class HomeViewModel(
             }
 
             is HomeIntent.OnWallpaperClicked -> {
-                navigator.navigate(DetailRoute(id = intent.wallpaperId))
+                navigator.navigate(Route.Detail(id = intent.wallpaperId))
                 currentState
             }
 

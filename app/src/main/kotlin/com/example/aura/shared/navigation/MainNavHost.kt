@@ -40,12 +40,12 @@ fun MainNavHost(modifier: Modifier = Modifier) {
             rememberViewModelStoreNavEntryDecorator(),
         ),
         entryProvider = entryProvider {
-            entry<HomeRoute>(
+            entry<Route.Home>(
                 metadata = ListDetailSceneStrategy.listPane()
             ) {
                 HomeScreen()
             }
-            entry<DetailRoute>(
+            entry<Route.Detail>(
                 metadata = ListDetailSceneStrategy.detailPane()
             ) { route ->
                 DetailScreen(route.id)
