@@ -1,80 +1,216 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM).
+# 🎨 Aura
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+<div align="center">
+  <img src="https://img.shields.io/badge/Kotlin-2.3.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin"/>
+  <img src="https://img.shields.io/badge/KMP-Mobile-blue?style=for-the-badge" alt="KMP"/>
+  <img src="https://img.shields.io/badge/Android-31+-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android"/>
+  <img src="https://img.shields.io/badge/iOS-SwiftUI-000000?style=for-the-badge&logo=apple&logoColor=white" alt="iOS"/>
+</div>
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+<p align="center">
+  <strong>A beautiful wallpaper discovery app built with Kotlin Multiplatform</strong>
+</p>
 
-* [/shared](./shared/src) is for the code that will be shared between all targets in the project.
-  The most important subfolder is [commonMain](./shared/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
-
-### Build and Run Android Application
-
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
-
-### Build and Run Desktop (JVM) Application
-
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:run
-  ```
-
-### Build and Run Web Application
-
-To build and run the development version of the web app, use the run configuration from the run widget
-in your IDE's toolbar or run it directly from the terminal:
-- for the Wasm target (faster, modern browsers):
-  - on macOS/Linux
-    ```shell
-    ./gradlew :composeApp:wasmJsBrowserDevelopmentRun
-    ```
-  - on Windows
-    ```shell
-    .\gradlew.bat :composeApp:wasmJsBrowserDevelopmentRun
-    ```
-- for the JS target (slower, supports older browsers):
-  - on macOS/Linux
-    ```shell
-    ./gradlew :composeApp:jsBrowserDevelopmentRun
-    ```
-  - on Windows
-    ```shell
-    .\gradlew.bat :composeApp:jsBrowserDevelopmentRun
-    ```
-
-### Build and Run iOS Application
-
-To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+<p align="center">
+  Browse and download stunning wallpapers from Pexels with native experiences on Android and iOS
+</p>
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
+## ✨ Features
 
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+- 🖼️ **Curated Wallpapers** - Browse trending and hand-picked wallpapers
+- 🔍 **Smart Search** - Find wallpapers by keyword with instant results
+- 📥 **Download Support** - Save wallpapers directly to your device
+- ♾️ **Infinite Scroll** - Seamless pagination for endless browsing
+- 🎯 **State Preservation** - Smart navigation between curated and search modes
+- 🌓 **Native UI** - Jetpack Compose for Android, SwiftUI for iOS
+- 🚀 **MVI Architecture** - Predictable state management
+- 📱 **Edge-to-Edge** - Immersive full-screen experience
+
+## 📱 Screenshots
+
+<p align="center">
+  <i>Screenshots coming soon...</i>
+</p>
+
+## 🏗️ Architecture
+
+Aura follows **Clean Architecture** principles with an **MVI (Model-View-Intent)** pattern, leveraging Kotlin Multiplatform to share business logic across platforms while maintaining native UI experiences.
+
+### Project Structure
+```text
+Aura/
+├── shared/ # Shared Kotlin Module (Business Logic)
+│ ├── commonMain/.. # Platform-agnostic code
+│ │ ├── data/ # Data layer (API, DTOs, Repository impl)
+│ │ ├── domain/ # Domain layer (Models, Repository interface)
+│ │ └── di/ # Dependency injection (Koin)
+│ ├── androidMain/ # Android-specific implementations
+│ └── iosMain/ # iOS-specific implementations
+│
+├── app/ # Android Application
+│ ├── feature/ # Feature modules (home, detail)
+│ ├── shared/ # Shared Android components
+│ ├── di/ # Android DI modules
+│ ├── MainActivity.kt
+│ └── MainApplication.kt
+│
+└── iosApp/ # iOS Application
+├── feature/ # Feature modules (home, detail)
+├── core/ # Core iOS utilities
+├── iOSApp.swift # App entry point
+└── Info.plist
+```
+
+
+### Architecture Layers
+```text
+┌─────────────────────────────────────────────────────┐
+│                  Presentation Layer                 │
+│ ┌─────────────────────┐ ┌─────────────────────┐     │
+│ │  Jetpack Compose    │ │       SwiftUI       │     │
+│ │     (Android)       │ │         (iOS)       │     │
+│ └─────────────────────┘ └─────────────────────┘     │
+└─────────────────────────────────────────────────────┘
+                           ↕                                                    
+┌─────────────────────────────────────────────────────┐
+│             Shared Business Logic (KMP)             │
+│ ┌───────────────────────────────────────────────┐   │
+│ │ Domain Layer                                  │   │
+│ │ - Wallpaper model                             │   │
+│ │ - WallpaperRepository interface               │   │
+│ │ - MVI State/Intent/Effect                     │   │
+│ └───────────────────────────────────────────────┘   │
+│                          ↕                          │
+│ ┌───────────────────────────────────────────────┐   │
+│ │ Data Layer                                    │   │
+│ │ - WallpaperRepositoryImpl                     │   │
+│ │ - Ktor HTTP client                            │   │
+│ │ - DTO to Domain mapping                       │   │
+│ └───────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────┘
+```
+
+## 🛠️ Tech Stack
+
+### Shared Module
+
+| Category      | Technology            | Purpose                    |
+|---------------|-----------------------|----------------------------|
+| Language      | Kotlin                | Cross-platform development |
+| Networking    | Ktor                  | HTTP client for Pexels API |
+| Serialization | Kotlinx Serialization | JSON parsing               |
+| DI            | Koin                  | Dependency injection       |
+| Concurrency   | Coroutines & Flow     | Async operations           |
+| Persistence   | SQLDelight            | Local database (future)    |
+
+### Android
+
+| Category        | Technology                       |
+|-----------------|----------------------------------|
+| UI Framework    | Jetpack Compose                  |
+| Navigation      | Navigation 3                     |
+| Image Loading   | Coil                             |
+| Architecture    | MVI + ViewModel                  |
+| Material Design | Material 3 with Adaptive layouts |
+
+### iOS
+
+| Category      | Technology            |
+|---------------|-----------------------|
+| UI Framework  | SwiftUI               |
+| Navigation    | NavigationStack       |
+| Image Loading | AsyncImage            |
+| Architecture  | Observable ViewModels |
+
+## 🎯 Key Features Explained
+
+### Dual-Mode Home Screen
+
+Aura intelligently switches between two modes:
+
+- **Curated Mode**: Displays trending wallpapers when the app launches
+- **Search Mode**: Activates when you type a query, showing relevant results
+- **State Preservation**: Clearing search instantly returns to curated list without reloading
+
+### Infinite Scroll Pagination
+
+- Automatically loads more wallpapers as you scroll
+- Smart loading states prevent duplicate API calls
+- End-of-list detection stops unnecessary requests
+
+### Immersive Detail Screen
+
+- **Full-Screen Experience**: Edge-to-edge display showcasing wallpapers in their full glory
+- **Photographer Attribution**: Elegant gradient overlay at the bottom displaying "Photo by [Name]"
+- **Platform-Native Design**: Respects each platform's design language while maintaining brand consistency
+- **Smooth Navigation**: Seamless transitions from grid to detail view on both platforms
+
+### Download Functionality
+
+- **One-Tap Download**: Save wallpapers directly to your device with a single tap
+- **Platform-Specific Implementation**:
+    - **Android**: Downloads to Pictures/Aura folder with MediaStore integration
+    - **iOS**: Saves to Photos library with native permission handling
+- **Original Quality**: Downloads the highest resolution available from Pexels
+- **Permission Management**: Handles storage/photo library permissions gracefully
+
+### Favorites System
+
+- **Local Storage**: SQLDelight database stores favorites with full wallpaper details
+- **Real-time Sync**: Favorites automatically update across Home, Search, and Favorites screens
+- **Offline Access**: Access your favorite wallpapers anytime, even without internet
+- **Instant Toggle**: Add/remove favorites with immediate UI feedback
+- **State Persistence**: Favorite status persists across app restarts
+
+### Native Platform Experiences
+
+**Android**:
+- Material 3 design system
+- Adaptive layouts for tablets
+- Edge-to-edge immersive mode
+- Custom search bar with animations
+
+**iOS**:
+- Native SwiftUI components
+- Smooth NavigationStack transitions
+- System-standard gestures
+- Adaptive to iOS design patterns
+
+## 🗺️ Roadmap
+
+### ✅ Completed
+
+- [x] Curated wallpapers browsing
+- [x] Search functionality with real-time results
+- [x] Infinite scroll pagination
+- [x] Immersive detail screen
+- [x] Download functionality (Android & iOS)
+- [x] Favorites system with local storage (SQLDelight)
+- [x] Real-time favorite sync across screens
+- [x] Edge-to-edge display
+- [x] State preservation between modes
+- [x] MVI architecture implementation
+- [x] Native UI for both platforms (Compose & SwiftUI)
+
+### 🚧 In Progress / Planned
+
+- [ ] Offline mode with local caching
+- [ ] Settings screen (quality, theme, etc.)
+- [ ] Video wallpaper support
+- [ ] Share functionality
+- [ ] Pull-to-refresh
+- [ ] Unit & UI tests
+- [ ] GitHub Actions CI/CD
+
+---
+
+<p align="center">
+  Made with ❤️ using Kotlin Multiplatform
+</p>
+
+<p align="center">
+  <a href="https://github.com/Helmy2">GitHub</a>
+  <a href="https://www.linkedin.com/in/mo-helmy/">LinkedIn</a>
+</p>

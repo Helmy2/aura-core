@@ -1,55 +1,90 @@
 package com.example.aura.shared.navigation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuite
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldLayout
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.example.aura.feature.detail.DetailScreen
+import com.example.aura.feature.favorites.FavoritesScreen
 import com.example.aura.feature.home.HomeScreen
-import org.koin.compose.koinInject
+import com.example.aura.navigation.bottomNavItems
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun MainNavHost(modifier: Modifier = Modifier) {
-    val navController: AppNavigator = koinInject()
-
-    val windowAdaptiveInfo = currentWindowAdaptiveInfo()
-    val directive = remember(windowAdaptiveInfo) {
-        calculatePaneScaffoldDirective(windowAdaptiveInfo)
-            .copy(horizontalPartitionSpacerSize = 0.dp)
+fun MainNavHost(
+    shouldSowNavigationBar: Boolean,
+    navController: AppNavigator,
+    modifier: Modifier = Modifier.Companion,
+    listDetailStrategy: ListDetailSceneStrategy<NavKey> = rememberListDetailSceneStrategy(),
+) {
+    NavigationSuiteScaffoldLayout(
+        navigationSuite = {
+            AnimatedVisibility(shouldSowNavigationBar) {
+                NavigationSuite {
+                    bottomNavItems.forEach { topLevelRoute ->
+                        val isSelected =
+                            topLevelRoute.destination == navController.backStack.lastOrNull()
+                        item(
+                            selected = isSelected,
+                            onClick = {
+                                navController.navigateToTopLevel(topLevelRoute.destination)
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = if (isSelected) {
+                                        topLevelRoute.selectedIcon
+                                    } else {
+                                        topLevelRoute.unselectedIcon
+                                    },
+                                    contentDescription = null
+                                )
+                            },
+                            label = {
+                                Text(topLevelRoute.title)
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    ) {
+        NavDisplay(
+            modifier = modifier.animateContentSize(),
+            sceneStrategy = listDetailStrategy,
+            backStack = navController.backStack,
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator(),
+            ),
+            entryProvider = entryProvider {
+                entry<Destination.Home>(
+                    metadata = ListDetailSceneStrategy.listPane()
+                ) {
+                    HomeScreen()
+                }
+                entry<Destination.Favorites>(
+                    metadata = ListDetailSceneStrategy.listPane()
+                ) {
+                    FavoritesScreen()
+                }
+                entry<Destination.Detail>(
+                    metadata = ListDetailSceneStrategy.detailPane()
+                ) { route ->
+                    DetailScreen(route.id)
+                }
+            },
+        )
     }
-    val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(directive = directive)
-
-
-    NavDisplay(
-        modifier = modifier,
-        sceneStrategy = listDetailStrategy,
-        backStack = navController.backStack,
-        entryDecorators = listOf(
-            rememberSaveableStateHolderNavEntryDecorator(),
-            rememberViewModelStoreNavEntryDecorator(),
-        ),
-        entryProvider = entryProvider {
-            entry<HomeRoute>(
-                metadata = ListDetailSceneStrategy.listPane()
-            ) {
-                HomeScreen()
-            }
-            entry<DetailRoute>(
-                metadata = ListDetailSceneStrategy.detailPane()
-            ) { route ->
-                DetailScreen(route.id)
-            }
-        },
-    )
 }

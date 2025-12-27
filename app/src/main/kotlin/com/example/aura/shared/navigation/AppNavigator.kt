@@ -1,14 +1,17 @@
 package com.example.aura.shared.navigation
 
+import android.os.Bundle
 import androidx.compose.runtime.mutableStateListOf
-import androidx.navigation3.runtime.NavKey
+import androidx.savedstate.SavedStateRegistry
+import androidx.savedstate.SavedStateRegistryOwner
+import kotlinx.serialization.json.Json
 
 /**
  * Manages the app's back stack and top-level navigation state using an observable list.
  */
 class AppNavigator(
-    startDestination: NavKey = HomeRoute,
-){
+    startDestination: Destination = Destination.Home,
+) : SavedStateRegistry.SavedStateProvider {
     /**
      * Observable history of visited destinations. The last item is the active screen.
      * Exposed as [mutableStateListOf] for Compose reactivity.
@@ -18,6 +21,47 @@ class AppNavigator(
     private val backStackStateKey = "key_nav_back_stack"
 
     /**
+     * Connects this Navigator to the Activity's SavedStateRegistry.
+     * MUST be called in MainActivity.onCreate().
+     */
+    fun attachToRegistry(owner: SavedStateRegistryOwner) {
+        val registry = owner.savedStateRegistry
+
+        // Unregister any previous old registry to prevent leaks
+        try {
+            registry.unregisterSavedStateProvider(backStackStateKey)
+        } catch (e: IllegalArgumentException) {
+            // Ignore if wasn't registered
+        }
+
+        registry.registerSavedStateProvider(backStackStateKey, this)
+
+        val savedBundle = registry.consumeRestoredStateForKey(backStackStateKey)
+        if (savedBundle != null) {
+            val jsonList = savedBundle.getStringArrayList(backStackStateKey)
+            if (!jsonList.isNullOrEmpty()) {
+                backStack.clear()
+                val restoredStack = jsonList.map { Json.decodeFromString<Destination>(it) }
+                backStack.addAll(restoredStack)
+            }
+        }
+    }
+
+    fun detachFromRegistry(owner: SavedStateRegistryOwner) {
+        owner.savedStateRegistry.unregisterSavedStateProvider(backStackStateKey)
+    }
+
+    /**
+     * Called by Android when the process is being killed or configuration changes.
+     * We serialize the current backStack to a list of JSON strings.
+     */
+    override fun saveState(): Bundle =
+        Bundle().apply {
+            val jsonList = ArrayList(backStack.map { Json.encodeToString(it) })
+            putStringArrayList(backStackStateKey, jsonList)
+        }
+
+    /**
      * Pushes [destination] to [backStack].
      *
      * @param destination The destination to navigate to.
@@ -25,7 +69,7 @@ class AppNavigator(
      *                  to prevent duplicate stacking (e.g., double-tap protection).
      */
     fun navigate(
-        destination: NavKey,
+        destination: Destination,
         singleTop: Boolean = true,
     ) {
         val current = backStack.lastOrNull()
@@ -42,7 +86,7 @@ class AppNavigator(
      *
      * **Use Case:** Logging out, completing a checkout flow, or resetting the app state.
      */
-    fun navigateAsStart(destination: NavKey) {
+    fun navigateAsStart(destination: Destination) {
         backStack.clear()
         backStack.add(destination)
     }
@@ -60,7 +104,7 @@ class AppNavigator(
      * - If re-selecting the current tab: Pops to root.
      * - If switching tabs: Resets stack to the new root.
      */
-    fun navigateToTopLevel(destination: NavKey) {
+    fun navigateToTopLevel(destination: Destination) {
         if (backStack.firstOrNull() == destination) {
             // Re-selected current tab: Pop everything above the root
             if (backStack.size > 1) {
@@ -69,7 +113,7 @@ class AppNavigator(
         } else {
             // Switch tab: Reset stack completely
             backStack.clear()
-            backStack.add(HomeRoute)
+            backStack.add(Destination.Home)
             backStack.add(destination)
         }
     }

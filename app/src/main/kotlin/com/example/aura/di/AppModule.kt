@@ -1,6 +1,7 @@
 package com.example.aura.di
 
 import com.example.aura.feature.detail.DetailViewModel
+import com.example.aura.feature.favorites.FavoritesViewModel
 import com.example.aura.feature.home.HomeViewModel
 import com.example.aura.shared.core.util.ImageDownloader
 import com.example.aura.shared.navigation.AppNavigator
@@ -18,4 +19,5 @@ val appModule = module {
     }
     viewModelOf(::HomeViewModel)
     viewModelOf(::DetailViewModel)
+    viewModelOf(::FavoritesViewModel)
 }

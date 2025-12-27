@@ -1,21 +1,19 @@
 import Foundation
-import Combine
-import Shared // KMP Module
+import Shared
+import Observation
 
-@MainActor
-class HomeViewModel: ObservableObject {
+@Observable
+class HomeViewModel {
     // MARK: - State
-    // We separate curated vs search to avoid losing position when clearing search
-    @Published var wallpapers: [WallpaperUi] = []
-    @Published var searchWallpapers: [WallpaperUi] = []
-    
-    @Published var isLoading: Bool = false
-    @Published var isPaginationLoading: Bool = false
-    @Published var errorMessage: String? = nil
+    var wallpapers: [WallpaperUi] = []
+    var searchWallpapers: [WallpaperUi] = []
+    var isLoading: Bool = false
+    var isPaginationLoading: Bool = false
+    var errorMessage: String? = nil
     
     // Search State
-    @Published var isSearchMode: Bool = false
-    @Published var searchQuery: String = ""
+    var isSearchMode: Bool = false
+    var searchQuery: String = ""
     
     // Pagination State
     private var currentPage: Int = 1
@@ -30,14 +28,13 @@ class HomeViewModel: ObservableObject {
     }
     
     // MARK: - Intents
-    
     func loadCuratedWallpapers(reset: Bool = false) {
         if reset {
             self.isLoading = true
             self.currentPage = 1
             self.wallpapers = []
             self.isEndReached = false
-            self.isSearchMode = false // Ensure we are in curated mode
+            self.isSearchMode = false
         } else {
             guard !isPaginationLoading && !isEndReached else { return }
             self.isPaginationLoading = true
@@ -48,46 +45,58 @@ class HomeViewModel: ObservableObject {
     
     func onSearchTriggered() {
         guard !searchQuery.isEmpty else { return }
-        
         self.isSearchMode = true
         self.isLoading = true
         self.currentPage = 1
         self.searchWallpapers = []
         self.isEndReached = false
-        
         performFetch(query: searchQuery, page: 1, isSearch: true)
     }
     
     func onClearSearch() {
         self.isSearchMode = false
         self.searchQuery = ""
-        self.isEndReached = false // Reset pagination block for curated list
-        // Note: We don't reload curated wallpapers here to keep the user's place.
+        self.isEndReached = false
     }
     
     func loadNextPage() {
         guard !isPaginationLoading && !isEndReached else { return }
         self.isPaginationLoading = true
-        
-        let nextPage = currentPage + 1 // Note: currentPage is updated on success
-        
+        let nextPage = currentPage + 1
         if isSearchMode {
             performFetch(query: searchQuery, page: nextPage, isSearch: true)
         } else {
             performFetch(query: nil, page: nextPage, isSearch: false)
         }
     }
+
+    func toggleFavorite(wallpaper: WallpaperUi) {
+        Task {
+            do {
+                let kmWallpaper = wallpaper.toDomain()
+                try await repository.toggleFavorite(wallpaper: kmWallpaper)
+
+                updateWallpaperFavoriteStatus(wallpaperId: wallpaper.id)
+            } catch {
+                self.errorMessage = error.localizedDescription
+            }
+        }
+    }
     
     // MARK: - Private Logic
-    
     private func performFetch(query: String?, page: Int, isSearch: Bool) {
         Task {
             do {
                 let result: [Wallpaper]
                 if let query = query, isSearch {
-                    result = try await repository.searchWallpapers(query: query, page: Int32(page))
+                    result = try await repository.searchWallpapers(
+                        query: query,
+                        page: Int32(page)
+                    )
                 } else {
-                    result = try await repository.getCuratedWallpapers(page: Int32(page))
+                    result = try await repository.getCuratedWallpapers(
+                        page: Int32(page)
+                    )
                 }
                 
                 if result.isEmpty {
@@ -95,15 +104,20 @@ class HomeViewModel: ObservableObject {
                     self.isLoading = false
                     self.isPaginationLoading = false
                 } else {
-                    let uiResults = result.map { $0.toUi() }
+                    let uiResults = result.map {
+                        $0.toUi(isFavorite: $0.isFavorite)
+                    }
                     
                     if isSearch {
                         if page == 1 {
                             self.searchWallpapers = uiResults
                         } else {
-                            // Simple deduplication
-                            let existingIds = Set(self.searchWallpapers.map { $0.id })
-                            let newUnique = uiResults.filter { !existingIds.contains($0.id) }
+                            let existingIds = Set(self.searchWallpapers.map {
+                                $0.id
+                            })
+                            let newUnique = uiResults.filter {
+                                !existingIds.contains($0.id)
+                            }
                             self.searchWallpapers.append(contentsOf: newUnique)
                         }
                     } else {
@@ -111,11 +125,12 @@ class HomeViewModel: ObservableObject {
                             self.wallpapers = uiResults
                         } else {
                             let existingIds = Set(self.wallpapers.map { $0.id })
-                            let newUnique = uiResults.filter { !existingIds.contains($0.id) }
+                            let newUnique = uiResults.filter {
+                                !existingIds.contains($0.id)
+                            }
                             self.wallpapers.append(contentsOf: newUnique)
                         }
                     }
-                    
                     self.currentPage = page
                     self.isLoading = false
                     self.isPaginationLoading = false
@@ -125,6 +140,16 @@ class HomeViewModel: ObservableObject {
                 self.isLoading = false
                 self.isPaginationLoading = false
             }
+        }
+    }
+
+    private func updateWallpaperFavoriteStatus(wallpaperId: Int64) {
+        if let index = wallpapers.firstIndex(where: { $0.id == wallpaperId }) {
+            wallpapers[index].isFavorite.toggle()
+        }
+
+        if let index = searchWallpapers.firstIndex(where: { $0.id == wallpaperId }) {
+            searchWallpapers[index].isFavorite.toggle()
         }
     }
 }

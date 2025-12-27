@@ -2,83 +2,128 @@ package com.example.aura.feature.detail
 
 import androidx.lifecycle.viewModelScope
 import com.example.aura.domain.repository.WallpaperRepository
-import com.example.aura.shared.core.util.ImageDownloader
+import com.example.aura.feature.detail.DetailEffect.ShowError
+import com.example.aura.feature.detail.DetailIntent.DownloadError
+import com.example.aura.feature.detail.DetailIntent.DownloadFinished
+import com.example.aura.feature.detail.DetailIntent.DownloadWallpaper
+import com.example.aura.feature.detail.DetailIntent.FavoriteStatusUpdated
+import com.example.aura.feature.detail.DetailIntent.LoadError
+import com.example.aura.feature.detail.DetailIntent.LoadWallpaper
+import com.example.aura.feature.detail.DetailIntent.OnBackClicked
+import com.example.aura.feature.detail.DetailIntent.ToggleFavorite
+import com.example.aura.feature.detail.DetailIntent.WallpaperLoaded
 import com.example.aura.shared.core.mvi.MviViewModel
+import com.example.aura.shared.core.util.ImageDownloader
 import com.example.aura.shared.model.toUi
 import com.example.aura.shared.navigation.AppNavigator
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class DetailViewModel(
     private val wallpaperRepository: WallpaperRepository,
-    private val navigator: AppNavigator,
-    private val imageDownloader: ImageDownloader
-) : MviViewModel<DetailState, DetailIntent, DetailEffect?>(
+    private val imageDownloader: ImageDownloader,
+    private val navigator: AppNavigator
+) : MviViewModel<DetailState, DetailIntent, DetailEffect>(
     initialState = DetailState()
 ) {
+
     override fun reduce(
         currentState: DetailState,
         intent: DetailIntent
     ): Pair<DetailState, DetailEffect?> {
         return when (intent) {
-            is DetailIntent.OnError -> {
-                currentState.copy(isLoading = false, error = intent.message).only()
+            is LoadWallpaper -> {
+                loadWallpaper(intent.wallpaperId)
+                currentState.copy(isLoading = true).only()
             }
 
-            is DetailIntent.OnBackClicked -> {
+            is OnBackClicked -> {
                 navigator.back()
                 currentState.only()
             }
 
-            is DetailIntent.OnScreenOpened -> {
-                loadWallpaperById(intent.wallpaperId)
-                currentState.copy(isLoading = true, error = null).only()
-            }
-
-            is DetailIntent.OnWallpaperLoaded -> {
+            is WallpaperLoaded -> {
+                observeFavoriteStatus(intent.wallpaper.id)
                 currentState.copy(
+                    wallpaper = intent.wallpaper,
                     isLoading = false,
-                    wallpaper = intent.wallpaper.toUi()
+                    error = null
                 ).only()
             }
 
-            is DetailIntent.DownloadImage -> {
-                downloadWallpaper()
+            is LoadError -> {
+                currentState.copy(
+                    isLoading = false,
+                    error = intent.message
+                ).with(ShowError(intent.message))
+            }
+
+            is ToggleFavorite -> {
+                viewModelScope.launch {
+                    try {
+                        val wallpaper = wallpaperRepository.getWallpaperById(intent.wallpaper.id)
+                        wallpaperRepository.toggleFavorite(wallpaper)
+                    } catch (e: Exception) {
+                        sendIntent(DownloadError(e.message ?: "Failed to update favorite"))
+                    }
+                }
                 currentState.only()
             }
 
-            is DetailIntent.DownloadStarted -> {
+            is FavoriteStatusUpdated -> {
+                currentState.wallpaper?.let { wallpaper ->
+                    currentState.copy(
+                        wallpaper = wallpaper.copy(isFavorite = intent.isFavorite)
+                    ).only()
+                } ?: currentState.only()
+            }
+
+            is DownloadWallpaper -> {
+                downloadWallpaper()
                 currentState.copy(isDownloading = true).only()
             }
 
-            is DetailIntent.DownloadFinished -> {
-                val message = if (intent.success) "Image Saved to Gallery" else "Download Failed"
-                currentState.copy(isDownloading = false).with(DetailEffect.ShowToast(message))
+            is DownloadError -> {
+                currentState.copy(isDownloading = false)
+                    .with(ShowError(intent.message))
+            }
+
+            is DownloadFinished -> {
+                currentState.copy(isDownloading = false).only()
             }
         }
     }
 
-
-    fun loadWallpaperById(id: Long) {
+    private fun loadWallpaper(wallpaperId: Long) {
         viewModelScope.launch {
             try {
-                val result = wallpaperRepository.getWallpaperById(id)
-                sendIntent(DetailIntent.OnWallpaperLoaded(result))
+                val wallpaper = wallpaperRepository.getWallpaperById(wallpaperId)
+                val isFavorite =
+                    wallpaperRepository.isFavorite(wallpaperId) // ✅ Use unified repository
+                sendIntent(WallpaperLoaded(wallpaper.toUi(isFavorite)))
             } catch (e: Exception) {
-                sendIntent(DetailIntent.OnError(e.message ?: "Unknown error"))
+                sendIntent(LoadError(e.message ?: "Failed to load wallpaper"))
             }
         }
+    }
+
+    private fun observeFavoriteStatus(wallpaperId: Long) {
+        wallpaperRepository.observeFavorites()
+            .map { favorites -> favorites.any { it.id == wallpaperId } }
+            .onEach { isFavorite ->
+                sendIntent(FavoriteStatusUpdated(isFavorite))
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun downloadWallpaper() {
         val wallpaper = currentState.wallpaper ?: return
-
         viewModelScope.launch {
-            sendIntent(DetailIntent.DownloadStarted)
-
             val fileName = "aura_${wallpaper.id}"
             val success = imageDownloader.downloadImage(wallpaper.imageUrl, fileName)
-
-            sendIntent(DetailIntent.DownloadFinished(success))
+            sendIntent(DownloadFinished(success))
         }
     }
 }

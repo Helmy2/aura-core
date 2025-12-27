@@ -13,9 +13,10 @@ data class WallpaperUi(
     val contentDescription: String,
     val aspectRatio: Float,
     val averageColor: String,
+    val isFavorite: Boolean
 )
 
-fun Wallpaper.toUi(): WallpaperUi {
+fun Wallpaper.toUi(isFavorite: Boolean): WallpaperUi {
     return WallpaperUi(
         id = this.id,
         imageUrl = this.imageUrl,
@@ -23,6 +24,7 @@ fun Wallpaper.toUi(): WallpaperUi {
         photographerName = "Photo by ${this.photographer}",
         contentDescription = "Photo by ${this.photographer}",
         aspectRatio = if (this.height > 0) this.width.toFloat() / this.height.toFloat() else 0.7f,
-        averageColor = averageColor
+        averageColor = averageColor,
+        isFavorite = isFavorite
     )
 }

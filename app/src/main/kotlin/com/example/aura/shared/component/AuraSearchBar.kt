@@ -1,4 +1,4 @@
-package com.example.aura.shared.designsystem.component
+package com.example.aura.shared.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn

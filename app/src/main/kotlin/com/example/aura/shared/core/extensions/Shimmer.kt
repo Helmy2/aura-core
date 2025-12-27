@@ -13,8 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import com.example.aura.shared.designsystem.theme.ShimmerBase
-import com.example.aura.shared.designsystem.theme.ShimmerHighlight
+import com.example.aura.shared.theme.ShimmerBase
+import com.example.aura.shared.theme.ShimmerHighlight
 
 fun Modifier.shimmerEffect(): Modifier = composed {
     val transition = rememberInfiniteTransition(label = "shimmer")

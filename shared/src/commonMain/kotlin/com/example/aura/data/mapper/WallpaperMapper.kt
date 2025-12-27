@@ -3,7 +3,7 @@ package com.example.aura.data.mapper
 import com.example.aura.data.remote.model.PhotoDto
 import com.example.aura.domain.model.Wallpaper
 
-fun PhotoDto.toDomain(): Wallpaper {
+fun PhotoDto.toDomain(isFavorite: Boolean): Wallpaper {
     return Wallpaper(
         id = id,
         imageUrl = src.original,
@@ -13,6 +13,6 @@ fun PhotoDto.toDomain(): Wallpaper {
         averageColor = avgColor ?: "#CCCCCC",
         height = height,
         width = width,
-        isFavorite = false
+        isFavorite = isFavorite
     )
 }

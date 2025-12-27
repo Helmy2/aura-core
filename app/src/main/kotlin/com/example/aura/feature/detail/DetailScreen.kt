@@ -7,14 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -28,12 +26,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.aura.shared.component.AuraImage
+import com.example.aura.shared.component.AuraScaffold
+import com.example.aura.shared.component.AuraTransparentTopBar
+import com.example.aura.shared.component.FavoriteButton
 import com.example.aura.shared.core.extensions.ObserveEffect
 import com.example.aura.shared.core.extensions.toColor
-import com.example.aura.shared.designsystem.component.AuraImage
-import com.example.aura.shared.designsystem.component.AuraTransparentTopBar
-import com.example.aura.shared.designsystem.theme.dimens
+import com.example.aura.shared.theme.dimens
 import org.koin.compose.viewmodel.koinViewModel
 
 @Suppress("ParamsComparedByRef")
@@ -45,7 +46,7 @@ fun DetailScreen(
     val snackbarState = remember { SnackbarHostState() }
     val state by viewModel.state.collectAsStateWithLifecycle()
     DisposableEffect(Unit) {
-        viewModel.sendIntent(DetailIntent.OnScreenOpened(wallpaperId))
+        viewModel.sendIntent(DetailIntent.LoadWallpaper(wallpaperId))
         onDispose {
 
         }
@@ -53,7 +54,7 @@ fun DetailScreen(
 
     ObserveEffect(flow = viewModel.effect) {
         when (it) {
-            is DetailEffect.ShowToast -> {
+            is DetailEffect.ShowError -> {
                 snackbarState.showSnackbar(it.message)
             }
 
@@ -63,7 +64,8 @@ fun DetailScreen(
         }
     }
 
-    Scaffold(
+    AuraScaffold(
+        isStatusBarOnDark = true,
         snackbarHost = {
             SnackbarHost(
                 snackbarState,
@@ -87,26 +89,62 @@ fun DetailScreen(
                 },
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { viewModel.sendIntent(DetailIntent.DownloadImage) },
-                containerColor = Color.White,
-                contentColor = Color.Black
-            ) {
-                if (state.isDownloading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(MaterialTheme.dimens.lg),
-                        color = Color.Black,
-                        strokeWidth = MaterialTheme.dimens.xxs
+        topBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(MaterialTheme.dimens.topBarScrimHeight)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.4f),
+                                Color.Transparent
+                            )
+                        )
                     )
-                } else {
-                    Icon(imageVector = Icons.Default.Download, contentDescription = "Download")
-                }
-            }
+            )
+            AuraTransparentTopBar(
+                title = "Details",
+                onBackClick = {
+                    viewModel.sendIntent(DetailIntent.OnBackClicked)
+                },
+                actions = {
+                    state.wallpaper?.let { wallpaper ->
+                        FavoriteButton(
+                            isFavorite = wallpaper.isFavorite,
+                            onClick = {
+                                viewModel.sendIntent(DetailIntent.ToggleFavorite(wallpaper))
+                            },
+                            tint = Color.White
+                        )
+
+                        IconButton(
+                            onClick = {
+                                viewModel.sendIntent(DetailIntent.DownloadWallpaper)
+                            },
+                            enabled = !state.isDownloading
+                        ) {
+                            if (state.isDownloading) {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    modifier = Modifier.padding(8.dp)
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Download,
+                                    contentDescription = "Download",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    }
+                },
+            )
         }
     ) { padding ->
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .background(color = state.wallpaper?.averageColor?.toColor() ?: Color.Transparent)
         ) {
             AuraImage(
@@ -118,27 +156,26 @@ fun DetailScreen(
                 )
             )
 
-            AuraTransparentTopBar(
-                title = "Details", onBackClick = {
-                    viewModel.sendIntent(DetailIntent.OnBackClicked)
-                }, modifier = Modifier.align(Alignment.TopCenter)
-            )
-
             Box(
-                modifier = Modifier.fillMaxWidth().height(
-                    MaterialTheme.dimens.bottomOverlayHeight
-                ).align(Alignment.BottomCenter).background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent, Color.Black.copy(alpha = 0.8f)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(
+                        MaterialTheme.dimens.bottomOverlayHeight
+                    )
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent, Color.Black.copy(alpha = 0.8f)
+                            )
                         )
                     )
-                )
             )
 
             AnimatedVisibility(
                 state.wallpaper != null, modifier =
-                    Modifier.align(Alignment.BottomStart)
+                    Modifier
+                        .align(Alignment.BottomStart)
                         .padding(MaterialTheme.dimens.screenPadding)
                         .padding(bottom = padding.calculateBottomPadding())
             ) {

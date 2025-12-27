@@ -3,9 +3,14 @@ package com.example.aura.shared.navigation
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
-
 @Serializable
-object HomeRoute : NavKey
+sealed interface Destination : NavKey {
+    @Serializable
+    data object Home : Destination
 
-@Serializable
-data class DetailRoute(val id: Long) : NavKey
+    @Serializable
+    data class Detail(val id: Long) : Destination
+
+    @Serializable
+    data object Favorites : Destination
+}
