@@ -1,12 +1,13 @@
-package com.example.aura.navigation
+package com.example.aura.shared.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.example.aura.shared.navigation.Destination
 
 data class BottomNavItem(
     val title: String,
@@ -27,5 +28,10 @@ val bottomNavItems = listOf(
         selectedIcon = Icons.Filled.Favorite,
         unselectedIcon = Icons.Outlined.FavoriteBorder,
         destination = Destination.Favorites
+    ), BottomNavItem(
+        title = "Settings",
+        selectedIcon = Icons.Filled.Settings,
+        unselectedIcon = Icons.Outlined.Settings,
+        destination = Destination.Settings
     )
 )

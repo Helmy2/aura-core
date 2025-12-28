@@ -30,6 +30,7 @@ kotlin {
             implementation(libs.bundles.ktor)
             implementation(libs.ktor.client.logging)
             implementation(libs.sqldelight.coroutines)
+            implementation(libs.androidx.datastore.preferences)
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)

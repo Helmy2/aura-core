@@ -1,11 +1,14 @@
 package com.example.aura.di
 
+import com.example.aura.data.local.SettingsLocalDataSource
 import com.example.aura.data.local.WallpaperLocalDataSource
 import com.example.aura.data.local.database.DatabaseDriverFactory
 import com.example.aura.data.remote.PexelsRemoteDataSource
+import com.example.aura.data.repository.SettingsRepositoryImpl
 import com.example.aura.data.repository.WallpaperRepositoryImpl
 import com.example.aura.data.util.TimeManagerImpl
 import com.example.aura.database.AuraDatabase
+import com.example.aura.domain.repository.SettingsRepository
 import com.example.aura.domain.repository.WallpaperRepository
 import com.example.aura.domain.util.TimeManager
 import io.ktor.client.HttpClient
@@ -51,7 +54,9 @@ fun sharedModule(apiKey: String) = module {
     }
 
     singleOf(::PexelsRemoteDataSource)
-
+    singleOf(::SettingsLocalDataSource)
     singleOf(::WallpaperLocalDataSource)
+
     singleOf(::WallpaperRepositoryImpl).bind<WallpaperRepository>()
+    singleOf(::SettingsRepositoryImpl).bind<SettingsRepository>()
 }

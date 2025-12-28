@@ -19,7 +19,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.example.aura.feature.detail.DetailScreen
 import com.example.aura.feature.favorites.FavoritesScreen
 import com.example.aura.feature.home.HomeScreen
-import com.example.aura.navigation.bottomNavItems
+import com.example.aura.feature.settings.SettingsScreen
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -83,6 +83,9 @@ fun MainNavHost(
                     metadata = ListDetailSceneStrategy.detailPane()
                 ) { route ->
                     DetailScreen(route.id)
+                }
+                entry<Destination.Settings> {
+                    SettingsScreen()
                 }
             },
         )

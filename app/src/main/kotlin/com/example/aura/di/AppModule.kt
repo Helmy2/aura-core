@@ -3,6 +3,7 @@ package com.example.aura.di
 import com.example.aura.feature.detail.DetailViewModel
 import com.example.aura.feature.favorites.FavoritesViewModel
 import com.example.aura.feature.home.HomeViewModel
+import com.example.aura.feature.settings.SettingsViewModel
 import com.example.aura.shared.core.util.ImageDownloader
 import com.example.aura.shared.navigation.AppNavigator
 import org.koin.android.ext.koin.androidContext
@@ -20,4 +21,5 @@ val appModule = module {
     viewModelOf(::HomeViewModel)
     viewModelOf(::DetailViewModel)
     viewModelOf(::FavoritesViewModel)
+    viewModelOf(::SettingsViewModel)
 }
