@@ -51,14 +51,14 @@ Aura/
 │ └── iosMain/ # iOS-specific implementations
 │
 ├── app/ # Android Application
-│ ├── feature/ # Feature modules (home, detail, videos)
+│ ├── feature/ # Feature modules (home, detail)
 │ ├── shared/ # Shared Android components
 │ ├── di/ # Android DI modules
 │ ├── MainActivity.kt
 │ └── MainApplication.kt
 │
 └── iosApp/ # iOS Application
-├── feature/ # Feature modules (home, detail, videos)
+├── feature/ # Feature modules (home, detail)
 ├── core/ # Core iOS utilities
 ├── iOSApp.swift # App entry point
 └── Info.plist
@@ -105,7 +105,7 @@ Aura/
 | Serialization | Kotlinx Serialization | JSON parsing               |
 | DI            | Koin                  | Dependency injection       |
 | Concurrency   | Coroutines & Flow     | Async operations           |
-| Persistence   | SQLDelight            | Local database             |
+| Persistence   | SQLDelight            | Local database (future)    |
 
 ### Android
 
