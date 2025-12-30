@@ -134,6 +134,12 @@ Aura intelligently switches between two modes:
 - **Search Mode**: Activates when you type a query, showing relevant results
 - **State Preservation**: Clearing search instantly returns to curated list without reloading
 
+### Video Support
+
+- **Native Playback**: Integrated AVPlayer for smooth video preview and playback
+- **Smart Thumbnails**: Video duration badges and optimized previews
+- **Download Integration**: Seamlessly saves videos to the Photos library
+
 ### Infinite Scroll Pagination
 
 - Automatically loads more wallpapers as you scroll
@@ -200,11 +206,11 @@ Aura intelligently switches between two modes:
 - [x] MVI architecture implementation
 - [x] Native UI for both platforms (Compose & SwiftUI)
 - [x] Settings screen (Theme selection)
+- [x] Video support
 
 ### 🚧 In Progress / Planned
 
 - [ ] Offline mode with local caching
-- [ ] Video wallpaper support
 - [ ] Share functionality
 - [ ] Pull-to-refresh
 - [ ] Unit & UI tests
