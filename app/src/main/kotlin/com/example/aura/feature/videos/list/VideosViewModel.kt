@@ -1,19 +1,27 @@
 package com.example.aura.feature.videos.list
 
 import androidx.lifecycle.viewModelScope
+import com.example.aura.domain.repository.FavoritesRepository
 import com.example.aura.domain.repository.VideoRepository
+import com.example.aura.feature.videos.list.VideosEffect.ShowError
 import com.example.aura.shared.core.mvi.MviViewModel
 import com.example.aura.shared.model.toUi
 import com.example.aura.shared.navigation.AppNavigator
-import com.example.aura.shared.navigation.Destination
+import com.example.aura.shared.navigation.Destination.VideoDetail
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class VideosViewModel(
-    private val videoRepository: VideoRepository, private val navigator: AppNavigator
+    private val videoRepository: VideoRepository,
+    private val favoritesRepository: FavoritesRepository,
+    private val navigator: AppNavigator,
 ) : MviViewModel<VideosState, VideosIntent, VideosEffect>(VideosState()) {
 
     init {
         sendIntent(VideosIntent.LoadPopularVideos)
+        observeFavorites()
     }
 
     override fun reduce(
@@ -28,7 +36,7 @@ class VideosViewModel(
             }
 
             is VideosIntent.OnVideoClicked -> {
-                navigator.navigate(Destination.VideoDetail(intent.video))
+                navigator.navigate(VideoDetail(intent.video))
                 currentState.only()
             }
 
@@ -98,7 +106,7 @@ class VideosViewModel(
             is VideosIntent.OnError -> {
                 currentState.copy(
                     isLoading = false, isPaginationLoading = false, error = intent.message
-                ).with(VideosEffect.ShowError(intent.message))
+                ).with(ShowError(intent.message))
             }
 
             VideosIntent.EndReached -> {
@@ -108,6 +116,35 @@ class VideosViewModel(
             VideosIntent.OnNavigateBack -> {
                 navigator.back()
                 currentState.only()
+            }
+
+            is VideosIntent.OnFavoriteClicked -> {
+                toggleFavorite(intent.video.id)
+                currentState.only()
+            }
+
+            is VideosIntent.FavoriteStatusUpdated -> {
+                val updatedPopular = currentState.popularVideos.map {
+                    if (it.id == intent.videoId) it.copy(isFavorite = intent.isFavorite) else it
+                }
+                val updatedSearch = currentState.searchVideos.map {
+                    if (it.id == intent.videoId) it.copy(isFavorite = intent.isFavorite) else it
+                }
+                currentState.copy(
+                    popularVideos = updatedPopular,
+                    searchVideos = updatedSearch
+                ).only()
+            }
+        }
+    }
+
+    private fun toggleFavorite(id: Long) {
+        viewModelScope.launch {
+            try {
+                val domainVideo = videoRepository.getVideoById(id)
+                favoritesRepository.toggleFavorite(domainVideo)
+            } catch (e: Exception) {
+                sendIntent(VideosIntent.OnError(e.message ?: "Failed to toggle favorite"))
             }
         }
     }
@@ -134,5 +171,20 @@ class VideosViewModel(
                 sendIntent(VideosIntent.OnError(e.message ?: "Search failed"))
             }
         }
+    }
+
+    private fun observeFavorites() {
+        favoritesRepository.observeFavoriteVideos()
+            .map { favorites -> favorites.map { it.id }.toSet() }
+            .onEach { favoriteIds ->
+                val allVideos = currentState.popularVideos + currentState.searchVideos
+                allVideos.forEach { video ->
+                    val isFav = video.id in favoriteIds
+                    if (video.isFavorite != isFav) {
+                        sendIntent(VideosIntent.FavoriteStatusUpdated(video.id, isFav))
+                    }
+                }
+            }
+            .launchIn(viewModelScope)
     }
 }

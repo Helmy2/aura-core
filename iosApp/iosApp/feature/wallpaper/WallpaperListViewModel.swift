@@ -22,10 +22,12 @@ class WallpaperListViewModel {
 
     // Dependencies
     private let repository: WallpaperRepository
+    private let favoritesRepository: FavoritesRepository
     private var favoritesTask: Task<Void, Never>? = nil
 
     init() {
         self.repository = iOSApp.dependencies.wallpaperRepository
+        self.favoritesRepository = iOSApp.dependencies.favoritesRepository
         observeFavorites()
     }
 
@@ -89,7 +91,7 @@ class WallpaperListViewModel {
             do {
                 let kmWallpaper = wallpaper.toDomain()
                 // ✅ SKIE lets you call suspend functions directly with try await
-                try await repository.toggleFavorite(wallpaper: kmWallpaper)
+                try await favoritesRepository.toggleFavorite(wallpaper: kmWallpaper)
             } catch {
                 self.errorMessage = error.localizedDescription
             }
@@ -100,7 +102,7 @@ class WallpaperListViewModel {
     private func observeFavorites() {
         favoritesTask?.cancel()
         favoritesTask = Task { @MainActor in
-            for await favorites in repository.observeFavorites() {
+            for await favorites in favoritesRepository.observeFavoritesWallpapers() {
                 let favoriteIds = Set(
                     favorites.map {
                         $0.id

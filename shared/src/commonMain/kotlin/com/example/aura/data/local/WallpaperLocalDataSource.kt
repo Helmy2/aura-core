@@ -17,7 +17,7 @@ class WallpaperLocalDataSource(
 ) {
     private val queries = database.favoriteWallpaperQueries
 
-    fun observeAllFavorites(): Flow<List<Wallpaper>> {
+    fun observeFavorites(): Flow<List<Wallpaper>> {
         return queries.getAllFavorites()
             .asFlow()
             .mapToList(Dispatchers.Default)
@@ -32,6 +32,7 @@ class WallpaperLocalDataSource(
                         averageColor = favorite.averageColor,
                         height = favorite.height.toInt(),
                         width = favorite.width.toInt(),
+                        addedAt = favorite.addedAt,
                         isFavorite = true
                     )
                 }
@@ -49,7 +50,8 @@ class WallpaperLocalDataSource(
                 averageColor = favorite.averageColor,
                 height = favorite.height.toInt(),
                 width = favorite.width.toInt(),
-                isFavorite = true
+                addedAt = favorite.addedAt,
+                isFavorite = true,
             )
         }
     }

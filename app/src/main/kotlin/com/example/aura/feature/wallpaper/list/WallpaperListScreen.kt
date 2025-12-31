@@ -2,7 +2,6 @@ package com.example.aura.feature.wallpaper.list
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,7 +17,6 @@ import com.example.aura.shared.component.AuraScaffold
 import com.example.aura.shared.component.AuraSearchBar
 import com.example.aura.shared.component.AuraTransparentTopBar
 import com.example.aura.shared.component.WallpaperGallery
-import com.example.aura.shared.theme.dimens
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -92,7 +90,6 @@ fun WallpaperListScreen() {
                                 viewModel.sendIntent(WallpaperListIntent.OnClearSearch)
                             },
                             isSearchActive = state.isSearchMode,
-                            modifier = Modifier.padding(bottom = MaterialTheme.dimens.md)
                         )
                     }
                 )

@@ -16,6 +16,9 @@ sealed class VideoDetailIntent {
     data object OnBackClicked : VideoDetailIntent()
     data object DownloadVideo : VideoDetailIntent()
     data class DownloadFinished(val success: Boolean) : VideoDetailIntent()
+
+    data object ToggleFavorite : VideoDetailIntent()
+    data class FavoriteStatusUpdated(val isFavorite: Boolean) : VideoDetailIntent()
 }
 
 sealed class VideoDetailEffect {

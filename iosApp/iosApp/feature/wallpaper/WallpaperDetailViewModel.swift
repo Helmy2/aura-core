@@ -10,15 +10,17 @@ class WallpaperDetailViewModel {
     var downloadState: DownloadState = .idle
 
     private let repository: WallpaperRepository
+    private let favoritesRepository: FavoritesRepository
 
     init() {
         self.repository = iOSApp.dependencies.wallpaperRepository
+        self.favoritesRepository = iOSApp.dependencies.favoritesRepository
     }
 
     func loadFavoriteStatus(wallpaperId: Int64) {
         Task {
             do {
-                self.isFavorite = try await repository.isFavorite(
+                self.isFavorite = try await favoritesRepository.isWallpapersFavorite(
                     wallpaperId: wallpaperId
                 ).boolValue
             } catch {
@@ -31,7 +33,7 @@ class WallpaperDetailViewModel {
         Task {
             do {
                 let kmWallpaper = wallpaper.toDomain()
-                try await repository.toggleFavorite(wallpaper: kmWallpaper)
+                try await favoritesRepository.toggleFavorite(wallpaper: kmWallpaper)
                 self.isFavorite.toggle()
             }
         }

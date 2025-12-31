@@ -3,11 +3,11 @@ package com.example.aura.feature.favorites
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -23,10 +23,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.aura.shared.component.AuraScaffold
-import com.example.aura.shared.component.WallpaperGallery
+import com.example.aura.shared.component.MediaContentGallery
+import com.example.aura.shared.theme.dimens
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavoritesScreen(
     viewModel: FavoritesViewModel = koinViewModel()
@@ -37,45 +37,53 @@ fun FavoritesScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                is FavoritesEffect.ShowError -> {
-                    snackbarHostState.showSnackbar(effect.message)
-                }
+                is FavoritesEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
             }
         }
     }
 
     AuraScaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
-        WallpaperGallery(
-            onWallpaperClick = { wallpaper ->
-                viewModel.sendIntent(FavoritesIntent.OnWallpaperClicked(wallpaper))
-            },
-            onWallpaperFavoriteClick = {
-                viewModel.sendIntent(FavoritesIntent.RemoveFavorite(it))
-            },
-            modifier = Modifier,
-            wallpapers = state.favorites,
-            isLoading = state.isLoading,
-            contentPadding = paddingValues,
-            emptyContent = {
-                EmptyFavoritesView()
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        Box {
+            if (state.error != null) {
+                Text(
+                    text = "Error: ${state.error}",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            } else {
+                MediaContentGallery(
+                    contentPadding = padding,
+                    items = state.items,
+                    onItemClick = {
+                        viewModel.sendIntent(FavoritesIntent.OnItemClicked(it))
+                    },
+                    onFavoriteClick = {
+                        viewModel.sendIntent(FavoritesIntent.RemoveFormFavorite(it))
+                    },
+                    isLoading = state.isLoading,
+                    emptyContent = {
+                        EmptyFavoritesView()
+                    }
+                )
             }
-        )
+        }
     }
 }
 
 @Composable
 private fun EmptyFavoritesView(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    message: String = "No favorites yet"
 ) {
     Box(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.md)
         ) {
             Icon(
                 imageVector = Icons.Default.Favorite,
@@ -84,16 +92,16 @@ private fun EmptyFavoritesView(
                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
             )
             Text(
-                text = "No favorites yet",
+                text = message,
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
             Text(
-                text = "Start adding wallpapers to your favorites\nby tapping the heart icon",
+                text = "Start adding items by tapping the heart icon",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 32.dp)
+                modifier = Modifier.padding(horizontal = MaterialTheme.dimens.xl)
             )
         }
     }

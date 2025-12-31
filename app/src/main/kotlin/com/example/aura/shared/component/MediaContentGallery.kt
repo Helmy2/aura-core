@@ -1,6 +1,5 @@
 package com.example.aura.shared.component
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,35 +14,32 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
-import coil3.compose.SubcomposeAsyncImage
+import com.example.aura.domain.model.MediaContent
 import com.example.aura.shared.core.extensions.plus
 import com.example.aura.shared.core.extensions.shimmerEffect
-import com.example.aura.shared.model.WallpaperUi
+import com.example.aura.shared.model.toUi
 import com.example.aura.shared.theme.dimens
 
 @Composable
-fun WallpaperGallery(
-    modifier: Modifier = Modifier.Companion,
-    wallpapers: List<WallpaperUi>,
-    onWallpaperClick: (WallpaperUi) -> Unit,
-    onWallpaperFavoriteClick: (WallpaperUi) -> Unit,
-    isPaginationLoading: Boolean = false,
-    isLoading: Boolean = false,
+fun MediaContentGallery(
+    items: List<MediaContent>,
+    onItemClick: (MediaContent) -> Unit,
+    onFavoriteClick: (MediaContent) -> Unit,
+    modifier: Modifier = Modifier,
     listState: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
-    contentPadding: PaddingValues = PaddingValues(0.dp),
+    contentPadding: PaddingValues = PaddingValues(16.dp),
+    isLoading: Boolean = false,
+    emptyContent: (@Composable () -> Unit)? = null,
     searchAppBar: (@Composable () -> Unit)? = null,
-    emptyContent: (@Composable () -> Unit)? = null
+    isPaginationLoading: Boolean = false
 ) {
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val windowSizeClass = adaptiveInfo.windowSizeClass
@@ -57,7 +53,7 @@ fun WallpaperGallery(
             150.dp
         }
 
-    if (wallpapers.isEmpty() && !isLoading && !isPaginationLoading) {
+    if (items.isEmpty() && !isLoading && !isPaginationLoading) {
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -89,18 +85,28 @@ fun WallpaperGallery(
                 item(span = StaggeredGridItemSpan.FullLine) {
                     searchAppBar()
                 }
-            if (emptyContent != null && wallpapers.isEmpty())
+            if (emptyContent != null && items.isEmpty())
                 item(span = StaggeredGridItemSpan.FullLine) {
                     emptyContent()
                 }
             if (!isLoading)
-                items(wallpapers, key = { it.id }) { wallpaper ->
-                    WallpaperItem(
-                        wallpaper = wallpaper,
-                        onClick = { onWallpaperClick(wallpaper) },
-                        onFavoriteClick = { onWallpaperFavoriteClick(wallpaper) },
-                        modifier = Modifier.animateItem()
-                    )
+                items(items, key = { it.id }) { item ->
+                    when (item) {
+                        is MediaContent.VideoContent -> VideoItem(
+                            video = item.video.toUi(),
+                            onClick = { onItemClick(item) },
+                            onFavoriteClick = { onFavoriteClick(item) },
+                            modifier = Modifier.animateItem()
+                        )
+
+                        is MediaContent.WallpaperContent -> WallpaperItem(
+                            wallpaper = item.wallpaper.toUi(),
+                            onClick = { onItemClick(item) },
+                            onFavoriteClick = { onFavoriteClick(item) },
+                            modifier = Modifier.animateItem()
+                        )
+                    }
+
                 }
             if (isPaginationLoading || isLoading) {
                 items(10) {
@@ -118,48 +124,6 @@ fun WallpaperGallery(
                     }
                 }
             }
-        }
-    }
-}
-
-
-@Composable
-fun WallpaperItem(
-    wallpaper: WallpaperUi,
-    onClick: () -> Unit,
-    onFavoriteClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(wallpaper.aspectRatio)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            SubcomposeAsyncImage(
-                model = wallpaper.smallImageUrl,
-                contentDescription = wallpaper.photographerName,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                loading = {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-            )
-
-            FavoriteButton(
-                isFavorite = wallpaper.isFavorite,
-                onClick = onFavoriteClick,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-            )
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.aura.feature.wallpaper.detail
 
 import androidx.lifecycle.viewModelScope
+import com.example.aura.domain.repository.FavoritesRepository
 import com.example.aura.domain.repository.WallpaperRepository
 import com.example.aura.feature.wallpaper.detail.WallpaperDetailEffect.ShowError
 import com.example.aura.feature.wallpaper.detail.WallpaperDetailIntent.DownloadError
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class WallpaperViewModel(
+    private val favoritesRepository: FavoritesRepository,
     private val wallpaperRepository: WallpaperRepository,
     private val imageDownloader: ImageDownloader,
     private val navigator: AppNavigator
@@ -64,7 +66,7 @@ class WallpaperViewModel(
                 viewModelScope.launch {
                     try {
                         val wallpaper = wallpaperRepository.getWallpaperById(intent.wallpaper.id)
-                        wallpaperRepository.toggleFavorite(wallpaper)
+                        favoritesRepository.toggleFavorite(wallpaper)
                     } catch (e: Exception) {
                         sendIntent(DownloadError(e.message ?: "Failed to update favorite"))
                     }
@@ -100,9 +102,7 @@ class WallpaperViewModel(
         viewModelScope.launch {
             try {
                 val wallpaper = wallpaperRepository.getWallpaperById(wallpaperId)
-                val isFavorite =
-                    wallpaperRepository.isFavorite(wallpaperId) // ✅ Use unified repository
-                sendIntent(WallpaperLoaded(wallpaper.toUi(isFavorite)))
+                sendIntent(WallpaperLoaded(wallpaper.toUi()))
             } catch (e: Exception) {
                 sendIntent(LoadError(e.message ?: "Failed to load wallpaper"))
             }
@@ -110,7 +110,7 @@ class WallpaperViewModel(
     }
 
     private fun observeFavoriteStatus(wallpaperId: Long) {
-        wallpaperRepository.observeFavorites()
+        favoritesRepository.observeFavoritesWallpapers()
             .map { favorites -> favorites.any { it.id == wallpaperId } }
             .onEach { isFavorite ->
                 sendIntent(FavoriteStatusUpdated(isFavorite))

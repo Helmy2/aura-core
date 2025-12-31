@@ -1,6 +1,7 @@
 package com.example.aura.feature.wallpaper.list
 
 import androidx.lifecycle.viewModelScope
+import com.example.aura.domain.repository.FavoritesRepository
 import com.example.aura.domain.repository.WallpaperRepository
 import com.example.aura.shared.core.mvi.MviViewModel
 import com.example.aura.shared.model.toUi
@@ -12,7 +13,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class WallpaperListViewModel(
-    private val wallpaperRepository: WallpaperRepository, private val navigator: AppNavigator
+    private val wallpaperRepository: WallpaperRepository,
+    private val favoritesRepository: FavoritesRepository,
+    private val navigator: AppNavigator
 ) : MviViewModel<WallpaperListState, WallpaperListIntent, Nothing>(
     initialState = WallpaperListState()
 ) {
@@ -109,7 +112,7 @@ class WallpaperListViewModel(
                     try {
                         val wallpaper =
                             wallpaperRepository.getWallpaperById(id = intent.wallpaper.id)
-                        wallpaperRepository.toggleFavorite(wallpaper)
+                        favoritesRepository.toggleFavorite(wallpaper)
                     } catch (_: Exception) {
 
                     }
@@ -147,7 +150,7 @@ class WallpaperListViewModel(
                 if (wallpapers.isEmpty()) {
                     sendIntent(WallpaperListIntent.SetEndReached)
                 } else {
-                    val uiWallpapers = wallpapers.map { it.toUi(isFavorite = it.isFavorite) }
+                    val uiWallpapers = wallpapers.map { it.toUi() }
                     sendIntent(WallpaperListIntent.AppendWallpapers(uiWallpapers, page))
                 }
             } catch (e: Exception) {
@@ -164,7 +167,7 @@ class WallpaperListViewModel(
                 if (results.isEmpty()) {
                     sendIntent(WallpaperListIntent.SetEndReached)
                 } else {
-                    val uiWallpapers = results.map { it.toUi(isFavorite = it.isFavorite) }
+                    val uiWallpapers = results.map { it.toUi() }
                     sendIntent(WallpaperListIntent.AppendWallpapers(uiWallpapers, page))
                 }
             } catch (e: Exception) {
@@ -174,7 +177,8 @@ class WallpaperListViewModel(
     }
 
     private fun observeFavorites() {
-        wallpaperRepository.observeFavorites().map { favorites -> favorites.map { it.id }.toSet() }
+        favoritesRepository.observeFavoritesWallpapers()
+            .map { favorites -> favorites.map { it.id }.toSet() }
             .onEach { favoriteIds ->
                 sendIntent(WallpaperListIntent.FavoriteStatusUpdated(favoriteIds))
             }.launchIn(viewModelScope)

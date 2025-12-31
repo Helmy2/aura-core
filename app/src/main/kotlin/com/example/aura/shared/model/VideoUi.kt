@@ -11,10 +11,10 @@ data class VideoUi(
     val width: Int,
     val height: Int,
     val duration: Int,
-    val thumbnail: String,
+    val imageUrl: String,
     val videoUrl: String,
     val photographer: String,
-    val photographerUrl: String
+    val isFavorite: Boolean
 )
 
 
@@ -24,10 +24,10 @@ fun Video.toUi(): VideoUi {
         width = width,
         height = height,
         duration = duration,
-        thumbnail = thumbnail,
+        imageUrl = image,
         videoUrl = videoUrl,
-        photographer = photographer,
-        photographerUrl = photographerUrl
+        photographer = user.name,
+        isFavorite = isFavorite
     )
 }
 

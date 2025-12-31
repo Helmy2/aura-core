@@ -16,11 +16,11 @@ extension Video {
         return VideoUi(
             id: self.id,
             videoUrl: self.videoUrl,
-            thumbnailUrl: self.thumbnail,
+            thumbnailUrl: self.imageUrl,
             duration: Int(self.duration),
             width: Int(self.width),
             height: Int(self.height),
-            photographerName: self.photographer
+            photographerName: self.user.name
         )
     }
 }

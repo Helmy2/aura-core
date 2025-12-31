@@ -18,14 +18,14 @@ data class WallpaperUi(
     val isFavorite: Boolean
 )
 
-fun Wallpaper.toUi(isFavorite: Boolean): WallpaperUi {
+fun Wallpaper.toUi(): WallpaperUi {
     return WallpaperUi(
-        id = this.id,
-        imageUrl = this.imageUrl,
-        smallImageUrl = this.smallImageUrl,
-        photographerName = "Photo by ${this.photographer}",
-        contentDescription = "Photo by ${this.photographer}",
-        aspectRatio = if (this.height > 0) this.width.toFloat() / this.height.toFloat() else 0.7f,
+        id = id,
+        imageUrl = imageUrl,
+        smallImageUrl = smallImageUrl,
+        photographerName = "Photo by ${photographer}",
+        contentDescription = "Photo by ${photographer}",
+        aspectRatio = if (height > 0) width.toFloat() / height.toFloat() else 0.7f,
         averageColor = averageColor,
         isFavorite = isFavorite
     )

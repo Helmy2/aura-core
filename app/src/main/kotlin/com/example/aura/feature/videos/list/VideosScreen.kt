@@ -1,16 +1,8 @@
 package com.example.aura.feature.videos.list
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,8 +16,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.aura.shared.component.AuraScaffold
 import com.example.aura.shared.component.AuraSearchBar
 import com.example.aura.shared.component.AuraTransparentTopBar
-import com.example.aura.shared.component.VideoGridCell
-import com.example.aura.shared.theme.dimens
+import com.example.aura.shared.component.VideoGallery
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -52,33 +43,27 @@ fun VideosScreen(
     AuraScaffold(
         topBar = {
             AuraTransparentTopBar(
-                title = "Wallpapers",
-                onBackClick = {
+                title = "Videos", onBackClick = {
                     viewModel.sendIntent(VideosIntent.OnNavigateBack)
-                }
-            )
-        }) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            val videos = if (state.isSearchMode) state.searchVideos else state.popularVideos
-
-            if (state.isLoading && videos.isEmpty()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                })
+        },
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (state.error != null) {
+                Text(
+                    text = "Error: ${state.error}",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             } else {
-                LazyVerticalStaggeredGrid(
-                    columns = StaggeredGridCells.Fixed(2),
-                    state = listState,
-                    contentPadding = PaddingValues(MaterialTheme.dimens.sm),
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimens.sm),
-                    verticalItemSpacing = MaterialTheme.dimens.sm,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    item(
-                        span = StaggeredGridItemSpan.FullLine,
-                    ) {
+                VideoGallery(
+                    contentPadding = padding,
+                    videos = if (state.isSearchMode) state.searchVideos else state.popularVideos,
+                    onVideoClick = { viewModel.sendIntent(VideosIntent.OnVideoClicked(it)) },
+                    onFavoriteClick = { viewModel.sendIntent(VideosIntent.OnFavoriteClicked(it)) },
+                    isLoading = state.isLoading,
+                    isPaginationLoading = state.isPaginationLoading,
+                    searchAppBar = {
                         AuraSearchBar(
                             query = state.searchQuery,
                             onQueryChange = {
@@ -91,31 +76,15 @@ fun VideosScreen(
                             onSearch = { viewModel.sendIntent(VideosIntent.OnSearchTriggered) },
                             onClearSearch = { viewModel.sendIntent(VideosIntent.OnClearSearch) },
                             isSearchActive = state.isSearchMode,
-                            modifier = Modifier
-                                .padding(MaterialTheme.dimens.md),
                         )
-                    }
-                    items(videos) { video ->
-                        VideoGridCell(
-                            video = video,
-                            onClick = { viewModel.sendIntent(VideosIntent.OnVideoClicked(video)) })
-                    }
-
-                    if (state.isPaginationLoading) {
-                        item {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
+                    },
+                    emptyContent = {
+                        if (state.isSearchMode) {
+                            Text(text = "No results found")
+                        } else {
+                            Text(text = "No videos found")
                         }
-                    }
-                }
-            }
-
-            if (state.error != null) {
-                Text(text = "Error: ${state.error}", modifier = Modifier.align(Alignment.Center))
+                    })
             }
         }
     }

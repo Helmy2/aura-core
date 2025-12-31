@@ -11,11 +11,13 @@ class FavoritesViewModel {
     var errorMessage: String? = nil
 
     private let repository: WallpaperRepository
+    private let favoritesRepository: FavoritesRepository
 
     private var observationTask: Task<Void, Never>? = nil
 
     init() {
         self.repository = iOSApp.dependencies.wallpaperRepository
+        self.favoritesRepository = iOSApp.dependencies.favoritesRepository
     }
 
     // MARK: - Lifecycle
@@ -26,7 +28,7 @@ class FavoritesViewModel {
         isLoading = true
 
         observationTask = Task { @MainActor in
-            for await wallpapers in repository.observeFavorites() {
+            for await wallpapers in favoritesRepository.observeFavoritesWallpapers() {
                 let uiList = wallpapers.map {
                     $0.toUi()
                 }
@@ -47,7 +49,7 @@ class FavoritesViewModel {
     func removeFavorite(wallpaper: WallpaperUi) {
         Task {
             do {
-                try await repository.removeFavorite(wallpaperId: wallpaper.id)
+                try await favoritesRepository.toggleFavorite(wallpaper: wallpaper.toDomain())
             } catch {
                 self.errorMessage = error.localizedDescription
             }

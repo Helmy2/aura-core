@@ -22,6 +22,9 @@ sealed class VideosIntent {
     data object EndReached : VideosIntent()
     data class OnError(val message: String) : VideosIntent()
     data class OnVideoClicked(val video: VideoUi) : VideosIntent()
+    data class OnFavoriteClicked(val video: VideoUi) : VideosIntent()
+    data class FavoriteStatusUpdated(val videoId: Long, val isFavorite: Boolean) : VideosIntent()
+
     data class OnSearchQueryChanged(val query: String) : VideosIntent()
     data object OnSearchTriggered : VideosIntent()
     data object OnClearSearch : VideosIntent()

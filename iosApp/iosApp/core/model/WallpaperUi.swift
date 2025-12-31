@@ -19,6 +19,7 @@ struct WallpaperUi: Identifiable, Equatable, Hashable {
     let height: Int
     let width: Int
     var isFavorite: Bool
+    let addedAt: Int64
 }
 
 extension WallpaperUi {
@@ -32,7 +33,8 @@ extension WallpaperUi {
             averageColor: self.averageColor,
             height: self.height,
             width: self.width,
-            isFavorite: isFavorite ?? self.isFavorite
+            isFavorite: isFavorite ?? self.isFavorite,
+            addedAt: addedAt
         )
     }
 
@@ -46,7 +48,8 @@ extension WallpaperUi {
             averageColor: self.averageColor,
             height: Int32(self.height),
             width: Int32(self.width),
-            isFavorite: isFavorite
+            isFavorite: isFavorite,
+            addedAt: addedAt
         )
     }
 }
@@ -62,7 +65,8 @@ extension Wallpaper {
             averageColor: self.averageColor,
             height: Int(self.height),
             width: Int(self.width),
-            isFavorite: self.isFavorite
+            isFavorite: self.isFavorite,
+            addedAt: addedAt
         )
     }
 }

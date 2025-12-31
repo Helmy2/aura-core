@@ -1,14 +1,17 @@
 package com.example.aura.di
 
 import com.example.aura.data.local.SettingsLocalDataSource
+import com.example.aura.data.local.VideoLocalDataSource
 import com.example.aura.data.local.WallpaperLocalDataSource
 import com.example.aura.data.local.database.DatabaseDriverFactory
 import com.example.aura.data.remote.PexelsRemoteDataSource
+import com.example.aura.data.repository.FavoritesRepositoryImpl
 import com.example.aura.data.repository.SettingsRepositoryImpl
 import com.example.aura.data.repository.VideoRepositoryImpl
 import com.example.aura.data.repository.WallpaperRepositoryImpl
 import com.example.aura.data.util.TimeManagerImpl
 import com.example.aura.database.AuraDatabase
+import com.example.aura.domain.repository.FavoritesRepository
 import com.example.aura.domain.repository.SettingsRepository
 import com.example.aura.domain.repository.VideoRepository
 import com.example.aura.domain.repository.WallpaperRepository
@@ -33,10 +36,8 @@ expect val platformModule: Module
 fun sharedModule(apiKey: String) = module {
     includes(platformModule)
 
-    // TimeManager
     single<TimeManager> { TimeManagerImpl() }
 
-    // Database
     single {
         AuraDatabase(
             driver = get<DatabaseDriverFactory>().createDriver()
@@ -65,8 +66,10 @@ fun sharedModule(apiKey: String) = module {
     singleOf(::PexelsRemoteDataSource)
     singleOf(::SettingsLocalDataSource)
     singleOf(::WallpaperLocalDataSource)
+    singleOf(::VideoLocalDataSource)
 
     singleOf(::WallpaperRepositoryImpl).bind<WallpaperRepository>()
     singleOf(::SettingsRepositoryImpl).bind<SettingsRepository>()
     singleOf(::VideoRepositoryImpl).bind<VideoRepository>()
+    singleOf(::FavoritesRepositoryImpl).bind<FavoritesRepository>()
 }
