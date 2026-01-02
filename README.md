@@ -30,10 +30,14 @@
 - 📱 **Edge-to-Edge** - Immersive full-screen experience
 
 ## 📱 Screenshots
-
-<p align="center">
-  <i>Screenshots coming soon...</i>
-</p>
+|                     Android                     |                     iOS                     |
+|:-----------------------------------------------:|:-------------------------------------------:|
+| <img src="./images/android-1.png" width="250"/> | <img src="./images/ios-1.png" width="250"/> |
+| <img src="./images/android-1.png" width="250"/> | <img src="./images/ios-2.png" width="250"/> |
+| <img src="./images/android-1.png" width="250"/> | <img src="./images/ios-2.png" width="250"/> |
+| <img src="./images/android-1.png" width="250"/> | <img src="./images/ios-2.png" width="250"/> |
+| <img src="./images/android-1.png" width="250"/> | <img src="./images/ios-2.png" width="250"/> |
+| <img src="./images/android-1.png" width="250"/> | <img src="./images/ios-2.png" width="250"/> |
 
 ## 🏗️ Architecture
 
