@@ -1,13 +1,12 @@
 import Shared
 import SwiftUI
 
-
 @main
 struct iOSApp: App {
     @StateObject private var coordinator = NavigationCoordinator()
     @State private var settingsViewModel: SettingsViewModel
     static let dependencies: DependenciesHelper = DependenciesHelper()
-    
+
     init() {
         KoinHelperKt.doInitKoin()
         settingsViewModel = SettingsViewModel()
@@ -42,8 +41,6 @@ struct ContentView: View {
                 switch coordinator.selectedTab {
                 case .home:
                     HomeNavigationStack()
-                case .videos:
-                    VideosNavigationStack()
                 case .favorites:
                     FavoritesNavigationStack()
                 case .settings:
@@ -73,12 +70,20 @@ struct HomeNavigationStack: View {
             HomeView()
                 .navigationDestination(for: NavigationRoute.self) { route in
                     switch route {
-                    case .detail(let wallpaper):
-                        DetailView(
+                    case .wallpaperList:
+                        WallpaperListView()
+                    case .videoList:
+                        VideosView()
+                    case .wallpaperDetail(let wallpaper, let onToggle):
+                        WallpaperDetailView(
                             wallpaper: wallpaper,
-                            coordinator: coordinator
+                            onFavoriteToggle: onToggle
                         )
-                            .toolbar(.hidden, for: .navigationBar)
+                    case .videoDetail(let video, let onToggle):
+                        VideoDetailView(
+                            video: video,
+                            onFavoriteToggle: onToggle
+                        )
                     default: EmptyView()
                     }
                 }
@@ -94,10 +99,15 @@ struct FavoritesNavigationStack: View {
             FavoritesView()
                 .navigationDestination(for: NavigationRoute.self) { route in
                     switch route {
-                    case .detail(let wallpaper):
-                        DetailView(
+                    case .wallpaperDetail(let wallpaper, let onToggle):
+                        WallpaperDetailView(
                             wallpaper: wallpaper,
-                            coordinator: coordinator
+                            onFavoriteToggle: onToggle
+                        )
+                    case .videoDetail(let video, let onToggle):
+                        VideoDetailView(
+                            video: video,
+                            onFavoriteToggle: onToggle
                         )
                             .toolbar(.hidden, for: .navigationBar)
                     default: EmptyView()
@@ -125,10 +135,12 @@ struct VideosNavigationStack: View {
             VideosView()
                 .navigationDestination(for: NavigationRoute.self) { route in
                     switch route {
-                    case .videoDetail(let video):
+                    case .videoDetail(let video, let onToggle):
                         VideoDetailView(
-                            video: video
-                        ).toolbar(.hidden, for: .navigationBar)
+                            video: video,
+                            onFavoriteToggle: onToggle
+                        )
+                            .toolbar(.hidden, for: .navigationBar)
                     default: EmptyView()
                     }
                 }

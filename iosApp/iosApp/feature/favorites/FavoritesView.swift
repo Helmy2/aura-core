@@ -4,7 +4,7 @@ import SwiftUI
 struct FavoritesView: View {
     @State private var viewModel = FavoritesViewModel()
     @EnvironmentObject var coordinator: NavigationCoordinator
-    
+
     private let columns = [
         GridItem(.flexible()),
         GridItem(.flexible()),
@@ -64,20 +64,60 @@ struct FavoritesView: View {
     private var favoritesGrid: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(viewModel.favorites, id: \.id) { wallpaper in
-                    WallpaperGridCell(
-                        wallpaper: wallpaper,
-                        onTap: {
-                            coordinator.navigateToDetail(wallpaper: wallpaper)
+                ForEach(viewModel.favorites, id: \.id) { item in
+                    MediaContentGridCell(
+                        content: item,
+                        onWallpaperNavigate: { wallpaper in
+                            coordinator.navigateToWallpaperDetail(
+                                wallpaper: wallpaper
+                            ) { w in
+                                viewModel.toggleFavorite(wallpaper: w)
+                            }
                         },
-                        onFavoriteToggle: {
-                            viewModel.removeFavorite(wallpaper: wallpaper)
+                        onRemoveWallpaperFavorite: { wallpaper in
+                            viewModel.toggleFavorite(wallpaper: wallpaper)
+                        },
+                        onVideoNavigate: { video in
+                            coordinator.navigateToVideoDetail(video: video) {
+                                w in
+                                viewModel.toggleFavorite(video: w)
+                            }
+                        },
+                        onRemoveVideoFavorite: { video in
+                            viewModel.toggleFavorite(video: video)
                         }
                     )
                 }
             }
             .padding(.horizontal)
             .padding(.top, 8)
+        }
+    }
+}
+
+struct MediaContentGridCell: View {
+    let content: MediaContent
+    var onWallpaperNavigate: (Wallpaper) -> Void
+    var onRemoveWallpaperFavorite: (Wallpaper) -> Void
+
+    var onVideoNavigate: (Video) -> Void
+    var onRemoveVideoFavorite: (Video) -> Void
+
+    var body: some View {
+        switch onEnum(of: content) {
+        case .wallpaperContent(let content):
+            WallpaperGridCell(
+                wallpaper: content.wallpaper,
+                onTap: { onWallpaperNavigate(content.wallpaper) },
+                onFavoriteToggle: { onRemoveWallpaperFavorite(content.wallpaper) },
+                )
+
+        case .videoContent(let content):
+            VideoGridCell(
+                video: content.video,
+                onTap: { onVideoNavigate(content.video) },
+                onFavoriteToggle: { onRemoveVideoFavorite(content.video) },
+                )
         }
     }
 }

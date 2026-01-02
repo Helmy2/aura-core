@@ -10,13 +10,11 @@ CREATE TABLE FavoriteWallpaper (
     addedAt INTEGER NOT NULL
 );
 
--- Query to get all favorites ordered by most recently added
 getAllFavorites:
 SELECT *
 FROM FavoriteWallpaper
 ORDER BY addedAt DESC;
 
--- Query to check if a wallpaper is favorited
 isFavorite:
 SELECT EXISTS(
     SELECT 1
@@ -24,26 +22,13 @@ SELECT EXISTS(
     WHERE id = ?
 );
 
--- Query to get a specific favorite by ID
-getFavoriteById:
-SELECT *
-FROM FavoriteWallpaper
-WHERE id = ?;
-
--- Insert a favorite wallpaper
 insertFavorite:
 INSERT OR REPLACE INTO FavoriteWallpaper(id, imageUrl, smallImageUrl, photographer, photographerUrl, averageColor, height, width, addedAt)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
--- Delete a favorite by ID
 deleteFavorite:
 DELETE FROM FavoriteWallpaper
 WHERE id = ?;
 
--- Delete all favorites
-deleteAllFavorites:
-DELETE FROM FavoriteWallpaper;
-
--- Get favorites count
 getFavoritesCount:
 SELECT COUNT(*) FROM FavoriteWallpaper;

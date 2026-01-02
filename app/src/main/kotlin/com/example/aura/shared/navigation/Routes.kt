@@ -1,6 +1,8 @@
 package com.example.aura.shared.navigation
 
 import androidx.navigation3.runtime.NavKey
+import com.example.aura.domain.model.Video
+import com.example.aura.domain.model.Wallpaper
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -9,17 +11,20 @@ sealed interface Destination : NavKey {
     data object Home : Destination
 
     @Serializable
-    data class Detail(val id: Long) : Destination
-
-    @Serializable
     data object Favorites : Destination
 
     @Serializable
     data object Settings : Destination
 
     @Serializable
-    data object Videos : Destination
+    data object WallpaperList : Destination
 
     @Serializable
-    data class VideoDetail(val id: Long) : Destination
+    data class WallpaperDetail(val wallpaper: Wallpaper) : Destination
+
+    @Serializable
+    data object VideoList : Destination
+
+    @Serializable
+    data class VideoDetail(val video: Video) : Destination
 }

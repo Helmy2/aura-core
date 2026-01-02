@@ -13,4 +13,5 @@ data class Wallpaper(
     val height: Int,
     val width: Int,
     val isFavorite: Boolean,
+    val addedAt: Long,
 )

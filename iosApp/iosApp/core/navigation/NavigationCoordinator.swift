@@ -1,6 +1,6 @@
-import SwiftUI
-import Shared
 import Observation
+import Shared
+import SwiftUI
 
 @MainActor
 class NavigationCoordinator: ObservableObject {
@@ -9,18 +9,24 @@ class NavigationCoordinator: ObservableObject {
 
     enum Tab {
         case home
-        case videos
         case favorites
         case settings
     }
 
-    // Navigate to detail
-    func navigateToDetail(wallpaper: WallpaperUi) {
-        path.append(NavigationRoute.detail(wallpaper))
+    func navigateToWallpaperList() {
+        path.append(NavigationRoute.wallpaperList)
     }
 
-    func navigateToVideoDetail(video: VideoUi) {
-        path.append(NavigationRoute.videoDetail(video))
+    func navigateToVideoList() {
+        path.append(NavigationRoute.videoList)
+    }
+
+    func navigateToWallpaperDetail(wallpaper: Wallpaper, onToggle: @escaping (Wallpaper) -> Void) {
+        path.append(NavigationRoute.wallpaperDetail(wallpaper, onToggle))
+    }
+
+    func navigateToVideoDetail(video: Video, onToggle: @escaping (Video) -> Void) {
+        path.append(NavigationRoute.videoDetail(video, onToggle))
     }
 
     // Pop to root

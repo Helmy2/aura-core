@@ -6,16 +6,20 @@ import Shared
 class FavoritesViewModel {
 
     // MARK: - State
-    var favorites: [WallpaperUi] = []
+    var favorites: [MediaContent] = []
     var isLoading: Bool = true
     var errorMessage: String? = nil
 
-    private let repository: WallpaperRepository
+    private let wallpaperRepository: WallpaperRepository
+    private let favoritesRepository: FavoritesRepository
+    private let videoRepository: VideoRepository
 
     private var observationTask: Task<Void, Never>? = nil
 
     init() {
-        self.repository = iOSApp.dependencies.wallpaperRepository
+        self.wallpaperRepository = iOSApp.dependencies.wallpaperRepository
+        self.favoritesRepository = iOSApp.dependencies.favoritesRepository
+        self.videoRepository = iOSApp.dependencies.videoRepository
     }
 
     // MARK: - Lifecycle
@@ -26,12 +30,8 @@ class FavoritesViewModel {
         isLoading = true
 
         observationTask = Task { @MainActor in
-            for await wallpapers in repository.observeFavorites() {
-                let uiList = wallpapers.map {
-                    $0.toUi()
-                }
-
-                self.favorites = uiList
+            for await items in favoritesRepository.observeFavorites() {
+                self.favorites = items
                 self.isLoading = false
             }
         }
@@ -44,10 +44,20 @@ class FavoritesViewModel {
 
     // MARK: - Intents
 
-    func removeFavorite(wallpaper: WallpaperUi) {
+    func toggleFavorite(video: Video) {
         Task {
             do {
-                try await repository.removeFavorite(wallpaperId: wallpaper.id)
+                try await favoritesRepository.toggleFavorite(video: video)
+            } catch {
+                self.errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    func toggleFavorite(wallpaper: Wallpaper) {
+        Task {
+            do {
+                try await favoritesRepository.toggleFavorite(wallpaper: wallpaper)
             } catch {
                 self.errorMessage = error.localizedDescription
             }

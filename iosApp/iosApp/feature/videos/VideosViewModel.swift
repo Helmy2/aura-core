@@ -5,8 +5,8 @@ import Shared
 @MainActor
 class VideosViewModel: ObservableObject {
     // MARK: - State
-    @Published var popularVideos: [VideoUi] = []
-    @Published var searchVideos: [VideoUi] = []
+    @Published var popularVideos: [Video] = []
+    @Published var searchVideos: [Video] = []
     @Published var isLoading: Bool = false
     @Published var isPaginationLoading: Bool = false
     @Published var errorMessage: String? = nil
@@ -21,9 +21,11 @@ class VideosViewModel: ObservableObject {
 
     // Dependencies
     private let repository: VideoRepository
+    private let favoritesRepository: FavoritesRepository
 
     init() {
         self.repository = iOSApp.dependencies.videoRepository
+        self.favoritesRepository = iOSApp.dependencies.favoritesRepository
     }
 
     // MARK: - Intents
@@ -100,9 +102,7 @@ class VideosViewModel: ObservableObject {
                     self.isLoading = false
                     self.isPaginationLoading = false
                 } else {
-                    let uiResults = result.map {
-                        $0.toUi()
-                    }
+                    let uiResults = result
 
                     if isSearch {
                         if page == 1 {
@@ -143,6 +143,27 @@ class VideosViewModel: ObservableObject {
                 self.errorMessage = error.localizedDescription
                 self.isLoading = false
                 self.isPaginationLoading = false
+            }
+        }
+    }
+
+    func toggleFavorite(video: Video) {
+        Task {
+            do {
+                try await favoritesRepository.toggleFavorite(video: video)
+
+                if let index = popularVideos.firstIndex(where: { $0.id == video.id }) {
+                    let isFavorite = !popularVideos[index].isFavorite
+                    popularVideos[index] = popularVideos[index].copy(isFavorite: isFavorite)
+                }
+
+                if let index = searchVideos.firstIndex(where: { $0.id == video.id }) {
+                    let isFavorite = !searchVideos[index].isFavorite
+                    searchVideos[index] = searchVideos[index].copy(isFavorite: isFavorite)
+                }
+
+            } catch {
+                print("Failed to toggle favorite: \(error)")
             }
         }
     }

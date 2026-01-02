@@ -2,9 +2,9 @@ import Shared
 import SwiftUI
 
 struct WallpaperGridCell: View {
-    let wallpaper: WallpaperUi
+    let wallpaper: Wallpaper
     let onTap: () -> Void
-    var onFavoriteToggle: (() -> Void)? = nil
+    var onFavoriteToggle: (() -> Void)
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -29,10 +29,9 @@ struct WallpaperGridCell: View {
                 .clipped()
             }
 
-
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(wallpaper.photographerName)
+                    Text(wallpaper.photographer)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundStyle(.white)
@@ -42,9 +41,7 @@ struct WallpaperGridCell: View {
 
                 Spacer()
 
-                Button(action: {
-                    onFavoriteToggle?()
-                }) {
+                Button(action: onFavoriteToggle) {
                     Image(
                         systemName: wallpaper.isFavorite
                             ? "heart.fill" : "heart"
