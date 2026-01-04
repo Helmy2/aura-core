@@ -101,3 +101,5 @@ kmmbridge {
 
     spm()
 }
+
+addGithubPackagesRepository()
