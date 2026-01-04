@@ -1,4 +1,4 @@
-rootProject.name = "Aura"
+rootProject.name = "aura-core"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
@@ -27,6 +27,4 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-
-include(":app")
 include(":shared")
