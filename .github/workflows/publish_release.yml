@@ -24,7 +24,7 @@ jobs:
 
       # 1. Build the XCFramework using standard Kotlin task
       - name: Build XCFramework
-        run: ./gradlew :shared:assembleSharedXCFrameworkRelease
+        run: ./gradlew :shared:assembleSharedXCFramework
 
       # 2. Zip the Framework
       - name: Zip XCFramework
