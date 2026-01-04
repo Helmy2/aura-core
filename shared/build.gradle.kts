@@ -25,7 +25,6 @@ kotlin {
         it.binaries.framework {
             baseName = "Shared"
             isStatic = true
-            freeCompilerArgs += listOf("-Xbuild-library-for-distribution")
         }
     }
 
