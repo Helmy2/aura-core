@@ -15,8 +15,8 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "Shared",
-            url: "URL_PLACEHOLDER",
-            checksum: "CHECKSUM_PLACEHOLDER"
+            url: "https://github.com/Helmy2/aura-core/releases/download/v0.0.3/Shared.xcframework.zip",
+            checksum: "0465f8b7b96cac121d05619b86ef76c60bbaa6ec74d2278825414f98793ff23c"
         ),
     ]
 )
