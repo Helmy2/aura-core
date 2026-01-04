@@ -10,6 +10,7 @@ koin = "4.1.1"
 sqldelight = "2.2.1"
 ktor = "3.3.3"
 mokkery = "3.1.1"
+kmmbridge = "1.2.1"
 
 [libraries]
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
@@ -39,3 +40,4 @@ mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 skie = { id = "co.touchlab.skie", version.ref = "skie" }
+kmmbridge = { id = "co.touchlab.kmmbridge", version.ref = "kmmbridge" }

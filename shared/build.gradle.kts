@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.skie)
+    alias(libs.plugins.kmmbridge)
     `maven-publish`
 }
 
@@ -14,7 +15,7 @@ version = "0.0.1"
 
 kotlin {
     androidTarget {
-        publishLibraryVariants("release", "debug")
+        publishLibraryVariants("release")
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
@@ -84,4 +85,12 @@ publishing {
             }
         }
     }
+}
+
+kmmbridge {
+    frameworkName.set("Shared")
+
+    mavenPublishArtifacts()
+
+    spm()
 }
