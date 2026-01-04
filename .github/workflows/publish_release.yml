@@ -34,7 +34,7 @@ jobs:
 
       - name: Publish Libraries
         # FIX: Added ':shared:' prefix to target the correct module
-        run: ./gradlew :shared:publish :shared:kmmBridgePublish
+        run: ./gradlew :shared:publish :shared:kmmBridgePublish --no-configuration-
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
