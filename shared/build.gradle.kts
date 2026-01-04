@@ -1,4 +1,3 @@
-import co.touchlab.kmmbridge.artifactmanager.ArtifactManager
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -7,7 +6,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
 //    alias(libs.plugins.skie)
-    alias(libs.plugins.kmmbridge)
     `maven-publish`
 }
 
@@ -94,21 +92,3 @@ publishing {
         }
     }
 }
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath(libs.kmmbridge.github)
-    }
-}
-
-
-kmmbridge {
-    frameworkName.set("Shared")
-    gitHubReleaseArtifacts()
-    spm()
-}
-
-addGithubPackagesRepository()

@@ -10,7 +10,6 @@ koin = "4.1.1"
 sqldelight = "2.2.1"
 ktor = "3.3.3"
 mokkery = "3.1.1"
-kmmbridge = "1.2.1"
 
 [libraries]
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
@@ -29,7 +28,6 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
-kmmbridge-github = { module = "co.touchlab.kmmbridge:kmmbridge-github", version.ref = "kmmbridge" }
 
 [bundles]
 ktor = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-serialization-kotlinx-json"]
@@ -41,4 +39,3 @@ mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 skie = { id = "co.touchlab.skie", version.ref = "skie" }
-kmmbridge = { id = "co.touchlab.kmmbridge", version.ref = "kmmbridge" }

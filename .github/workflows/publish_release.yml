@@ -1,16 +1,16 @@
-name: KMMBridge Release
+name: Manual KMP Release
 on:
-  workflow_dispatch: # Allows manual triggering
+  workflow_dispatch: # Manual trigger
   push:
-    branches:
-      - main # Run on pushes to main
+    tags:
+      - 'v*' # Trigger on tags like v0.0.1
 
 permissions:
-  contents: write # REQUIRED: To create releases and push tags
+  contents: write
 
 jobs:
-  kmmbridge-publish:
-    runs-on: macos-15 # Use latest macOS for Xcode compatibility
+  build-and-release:
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
@@ -22,20 +22,44 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # 1. Build and Publish the XCFramework Zip to GitHub Releases
-      - name: Publish to GitHub Releases
-        run: ./gradlew kmmBridgePublish
+      # 1. Build the XCFramework using standard Kotlin task
+      - name: Build XCFramework
+        run: ./gradlew :shared:assembleSharedXCFrameworkRelease
+
+      # 2. Zip the Framework
+      - name: Zip XCFramework
+        run: |
+          cd shared/build/XCFrameworks/release
+          zip -r Shared.xcframework.zip Shared.xcframework
+          
+          # Calculate Checksum
+          CHECKSUM=$(swift package compute-checksum Shared.xcframework.zip)
+          echo "CHECKSUM=$CHECKSUM" >> $GITHUB_ENV
+          
+          # Move zip to root for easy access
+          mv Shared.xcframework.zip ../../../../
+
+      # 3. Create GitHub Release & Upload Zip
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: Shared.xcframework.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # GITHUB_ACTOR is automatically set by Actions, but good to be explicit if needed
-          GITHUB_ACTOR: ${{ github.actor }}
 
-      # 2. Update the Git Tag to point to this new release
-      # This is CRITICAL for SPM to find the correct version
-      - name: Update Release Tag
-        uses: touchlab/ga-update-release-tag@v1
-        id: update-release-tag
-        with:
-          tagVersion: ${{ steps.versionPropertyValue.outputs.propVal }} # Or your version logic
-          # If you don't have a step outputting the version, you might need to hardcode or extract it
-          # For simple setups, KMMBridge handles the tag creation, but this ensures the tag moves correctly.
+      # 4. Update Package.swift with new URL and Checksum
+      - name: Update Package.swift
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          URL="https://github.com/${{ github.repository }}/releases/download/$VERSION/Shared.xcframework.zip"
+          
+          # Replace Placeholders using sed
+          sed -i '' "s|URL_PLACEHOLDER|$URL|g" Package.swift
+          sed -i '' "s|CHECKSUM_PLACEHOLDER|${{ env.CHECKSUM }}|g" Package.swift
+          
+          # Commit the updated Package.swift back to the repo
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add Package.swift
+          git commit -m "Update Package.swift for $VERSION"
+          git push origin HEAD:main
