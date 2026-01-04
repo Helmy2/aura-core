@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
-    alias(libs.plugins.skie)
+//    alias(libs.plugins.skie)
     alias(libs.plugins.kmmbridge)
     `maven-publish`
 }
@@ -21,14 +21,21 @@ kotlin {
         }
     }
 
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
+    listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach {
+        it.binaries.framework {
             baseName = "Shared"
-            isStatic = false
-            freeCompilerArgs += "-Xembed-bitcode"
+            isStatic = true
+            freeCompilerArgs += listOf("-Xbuild-library-for-distribution")
+        }
+    }
+
+    targets.all {
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
         }
     }
 
