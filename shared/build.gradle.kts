@@ -6,15 +6,20 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.skie)
+    `maven-publish`
 }
+
+group = "com.helmy.aura"
+version = "0.0.1"
 
 kotlin {
     androidTarget {
+        publishLibraryVariants("release", "debug")
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -61,6 +66,22 @@ sqldelight {
     databases {
         create("AuraDatabase") {
             packageName.set("com.example.aura.database")
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/Helmy2/aura-core")
+
+            credentials {
+                username = project.findProperty("gpr.user") as String?
+                    ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") as String?
+                    ?: System.getenv("GITHUB_TOKEN")
+            }
         }
     }
 }
