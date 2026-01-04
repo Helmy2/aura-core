@@ -33,8 +33,7 @@ jobs:
           git config user.email "actions@github.com"
 
       - name: Publish Libraries
-        # FIX: Added ':shared:' prefix to target the correct module
-        run: ./gradlew :shared:kmmBridgePublish --no-configuration-cache
+        run: ./gradlew :shared:publish :shared:kmmBridgePublish --no-configuration-cache
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
