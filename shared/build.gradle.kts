@@ -1,3 +1,4 @@
+import co.touchlab.kmmbridge.artifactmanager.ArtifactManager
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -94,11 +95,19 @@ publishing {
     }
 }
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath(libs.kmmbridge.github)
+    }
+}
+
+
 kmmbridge {
     frameworkName.set("Shared")
-
-    mavenPublishArtifacts()
-
+    gitHubReleaseArtifacts()
     spm()
 }
 
