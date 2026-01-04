@@ -6,14 +6,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write # Required to commit updates to Package.swift
-  packages: write # Required to publish artifacts to GitHub Packages
+  contents: write
+  packages: write
 
 jobs:
   publish-artifacts:
     name: Publish Android AAR & iOS XCFramework
-    runs-on: macos-latest # macOS is required to build the iOS XCFramework
-
+    runs-on: macos-latest
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -28,20 +28,16 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Configure Git User
-        # Required for KMMBridge to commit the updated Package.swift file
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
       - name: Publish Libraries
-        # 1. 'publish': Builds and uploads Android AAR + iOS Zip to GitHub Packages
-        # 2. 'kmmBridgePublish': Updates Package.swift with the new version/checksum
-        run: ./gradlew publish kmmBridgePublish
+        # FIX: Added ':shared:' prefix to target the correct module
+        run: ./gradlew :shared:publish :shared:kmmBridgePublish
         env:
-          # Authenticates with GitHub Packages to upload artifacts
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          # Fallback properties if your build.gradle uses 'gpr.user'/'gpr.key'
+          
           gpr.user: ${{ github.actor }}
           gpr.key: ${{ secrets.GITHUB_TOKEN }}
