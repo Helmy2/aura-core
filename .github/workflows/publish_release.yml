@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - 'v*' # Trigger on tags like v0.0.1
+      - 'v*' # Trigger on tags like v0.0.1 pushed to aura-core
 
 permissions:
   contents: write
@@ -36,44 +36,44 @@ jobs:
           CHECKSUM=$(swift package compute-checksum Shared.xcframework.zip)
           echo "CHECKSUM=$CHECKSUM" >> $GITHUB_ENV
           
-          mv Shared.xcframework.zip ../../../../
+          # Move zip to a clean distribution folder
+          mkdir -p ../../../../dist
+          mv Shared.xcframework.zip ../../../../dist/
 
-      # 3. Create Release on THIS Repo (aura-core) to host the zip
-      - name: Release to GitHub
+      # 3. Create Release on DISTRIBUTION Repo (aura-spm) & Upload Zip
+      # This action allows us to publish to a different repository!
+      - name: Release to aura-spm
         uses: softprops/action-gh-release@v1
         with:
-          files: Shared.xcframework.zip
+          token: ${{ secrets.DISTRIBUTION_REPO_PAT }} # 👈 Must use PAT to write to other repo
+          repository: Helmy2/aura-spm               # 👈 Target Repo
+          tag_name: ${{ github.ref_name }}          # Use same tag as source (e.g. v0.0.1)
+          files: dist/Shared.xcframework.zip
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 4. Checkout the DISTRIBUTION Repo (aura-spm)
+      # 4. Checkout Distribution Repo to update Package.swift
       - name: Checkout Distribution Repo
         uses: actions/checkout@v4
         with:
-          repository: Helmy2/aura-spm # 👈 Your distribution repo name
-          token: ${{ secrets.DISTRIBUTION_REPO_PAT }} # 👈 Uses the PAT you just created
+          repository: Helmy2/aura-spm
+          token: ${{ secrets.DISTRIBUTION_REPO_PAT }}
           path: distribution-repo
           ref: main
 
-      # 5. Update Package.swift in the OTHER repo (Robust Method)
-      - name: Update Distribution Repo
+      # 5. Update Package.swift in aura-spm
+      - name: Update Package.swift
         run: |
           cd distribution-repo
           
-          # Get Version from tag
           VERSION=${GITHUB_REF#refs/tags/}
           
-          # URL still points to the SOURCE repo (aura-core) releases
-          URL="https://github.com/${{ github.repository }}/releases/download/$VERSION/Shared.xcframework.zip"
+          # URL now points to AURA-SPM releases
+          URL="https://github.com/Helmy2/aura-spm/releases/download/$VERSION/Shared.xcframework.zip"
           
           echo "Updating Package.swift..."
-          echo "Version: $VERSION"
           echo "URL: $URL"
-          echo "Checksum: ${{ env.CHECKSUM }}"
           
-          # GENERATE Package.swift CONTENT FROM SCRATCH
-          # This ensures we always have a valid file without relying on placeholders
+          # Generate file from scratch
           cat > Package.swift <<EOF
           // swift-tools-version:5.3
           import PackageDescription
@@ -99,17 +99,13 @@ jobs:
           )
           EOF
           
-          # Verify content
-          cat Package.swift
-          
           # Commit and Push
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
-          
           git add Package.swift
           
           if git diff --staged --quiet; then
-            echo "No changes to Package.swift"
+            echo "No changes"
           else
             git commit -m "Update Package.swift for $VERSION"
             git push origin main
