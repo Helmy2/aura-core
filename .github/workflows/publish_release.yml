@@ -24,7 +24,7 @@ jobs:
 
       # 1. Build XCFramework
       - name: Build XCFramework
-        run: ./gradlew :shared:assembleSharedXCFrameworkRelease
+        run: ./gradlew :shared:assembleSharedXCFramework
 
       # 2. Zip and Checksum
       - name: Zip XCFramework
