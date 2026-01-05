@@ -1,6 +1,6 @@
 name: Manual KMP Release
 on:
-  workflow_dispatch: # Manual trigger
+  workflow_dispatch:
   push:
     tags:
       - 'v*' # Trigger on tags like v0.0.1
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  build-ios:
+  build-and-release:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -22,47 +22,98 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # 1. Build the XCFramework using standard Kotlin task
+      # 1. Build XCFramework
       - name: Build XCFramework
-        run: ./gradlew :shared:assembleSharedXCFramework
+        run: ./gradlew :shared:assembleSharedXCFrameworkRelease
 
-      # 2. Zip the Framework
+      # 2. Zip and Checksum
       - name: Zip XCFramework
         run: |
           cd shared/build/XCFrameworks/release
           zip -r Shared.xcframework.zip Shared.xcframework
           
-          # Calculate Checksum
+          # Calculate checksum
           CHECKSUM=$(swift package compute-checksum Shared.xcframework.zip)
           echo "CHECKSUM=$CHECKSUM" >> $GITHUB_ENV
           
-          # Move zip to root for easy access
           mv Shared.xcframework.zip ../../../../
 
-      # 3. Create GitHub Release & Upload Zip
-      - name: Release
+      # 3. Create Release on THIS Repo (aura-core) to host the zip
+      - name: Release to GitHub
         uses: softprops/action-gh-release@v1
         with:
           files: Shared.xcframework.zip
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 4. Update Package.swift with new URL and Checksum
-      - name: Update Package.swift
+      # 4. Checkout the DISTRIBUTION Repo (aura-spm)
+      - name: Checkout Distribution Repo
+        uses: actions/checkout@v4
+        with:
+          repository: Helmy2/aura-spm # 👈 Your distribution repo name
+          token: ${{ secrets.DISTRIBUTION_REPO_PAT }} # 👈 Uses the PAT you just created
+          path: distribution-repo
+          ref: main
+
+      # 5. Update Package.swift in the OTHER repo (Robust Method)
+      - name: Update Distribution Repo
         run: |
+          cd distribution-repo
+          
+          # Get Version from tag
           VERSION=${GITHUB_REF#refs/tags/}
+          
+          # URL still points to the SOURCE repo (aura-core) releases
           URL="https://github.com/${{ github.repository }}/releases/download/$VERSION/Shared.xcframework.zip"
           
-          # Replace Placeholders using sed
-          sed -i '' "s|URL_PLACEHOLDER|$URL|g" Package.swift
-          sed -i '' "s|CHECKSUM_PLACEHOLDER|${{ env.CHECKSUM }}|g" Package.swift
+          echo "Updating Package.swift..."
+          echo "Version: $VERSION"
+          echo "URL: $URL"
+          echo "Checksum: ${{ env.CHECKSUM }}"
           
-          # Commit the updated Package.swift back to the repo
+          # GENERATE Package.swift CONTENT FROM SCRATCH
+          # This ensures we always have a valid file without relying on placeholders
+          cat > Package.swift <<EOF
+          // swift-tools-version:5.3
+          import PackageDescription
+
+          let package = Package(
+              name: "Shared",
+              platforms: [
+                  .iOS(.v13)
+              ],
+              products: [
+                  .library(
+                      name: "Shared",
+                      targets: ["Shared"]
+                  ),
+              ],
+              targets: [
+                  .binaryTarget(
+                      name: "Shared",
+                      url: "$URL",
+                      checksum: "${{ env.CHECKSUM }}"
+                  ),
+              ]
+          )
+          EOF
+          
+          # Verify content
+          cat Package.swift
+          
+          # Commit and Push
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
+          
           git add Package.swift
-          git commit -m "Update Package.swift for $VERSION"
-          git push origin HEAD:main
+          
+          if git diff --staged --quiet; then
+            echo "No changes to Package.swift"
+          else
+            git commit -m "Update Package.swift for $VERSION"
+            git push origin main
+          fi
 
   publish-android:
     runs-on: ubuntu-latest
